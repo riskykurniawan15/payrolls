@@ -8,6 +8,7 @@ import (
 	"github.com/riskykurniawan15/payrolls/infrastructure/http/middleware"
 	"github.com/riskykurniawan15/payrolls/models/user"
 	userServices "github.com/riskykurniawan15/payrolls/services/user"
+	"github.com/riskykurniawan15/payrolls/utils/validator"
 )
 
 type (
@@ -38,7 +39,7 @@ func (handler UserHandler) Login(ctx echo.Context) error {
 
 	// Validate request using custom validator
 	if err := ctx.Validate(&req); err != nil {
-		if validationErrors, ok := err.(*middleware.ValidationErrors); ok {
+		if validationErrors, ok := err.(*validator.ValidationErrors); ok {
 			return ctx.JSON(http.StatusBadRequest, entities.ResponseFormater(http.StatusBadRequest, map[string]interface{}{
 				"error":             "Validation failed",
 				"validation_errors": validationErrors.GetValidationErrors(),

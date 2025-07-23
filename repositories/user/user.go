@@ -11,6 +11,7 @@ type (
 	IUserRepository interface {
 		GetUserByUsername(ctx context.Context, username string) (user.User, error)
 		GetUserByID(ctx context.Context, id uint) (user.User, error)
+		CreateUser(ctx context.Context, user user.User) (user.User, error)
 	}
 
 	UserRepository struct {
@@ -24,7 +25,7 @@ func NewUserRepository(db *gorm.DB) IUserRepository {
 	}
 }
 
-func (repo UserRepository) GetUserByUsername(ctx context.Context, username string) (user user.User, err error) {
+func (repo *UserRepository) GetUserByUsername(ctx context.Context, username string) (user user.User, err error) {
 	if err = repo.db.WithContext(ctx).Where("LOWER(username) = LOWER(?)", username).First(&user).Error; err != nil {
 		return
 	}
@@ -32,8 +33,16 @@ func (repo UserRepository) GetUserByUsername(ctx context.Context, username strin
 	return user, nil
 }
 
-func (repo UserRepository) GetUserByID(ctx context.Context, id uint) (user user.User, err error) {
+func (repo *UserRepository) GetUserByID(ctx context.Context, id uint) (user user.User, err error) {
 	if err = repo.db.WithContext(ctx).Where("id = ?", id).First(&user).Error; err != nil {
+		return
+	}
+
+	return user, nil
+}
+
+func (repo *UserRepository) CreateUser(ctx context.Context, user user.User) (createdUser user.User, err error) {
+	if err = repo.db.WithContext(ctx).Create(&user).Error; err != nil {
 		return
 	}
 

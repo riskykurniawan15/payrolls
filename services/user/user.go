@@ -3,19 +3,19 @@ package user
 import (
 	"context"
 	"errors"
-	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/riskykurniawan15/payrolls/config"
 	"github.com/riskykurniawan15/payrolls/models/user"
 	userRepo "github.com/riskykurniawan15/payrolls/repositories/user"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/riskykurniawan15/payrolls/utils/bcrypt"
+	"github.com/riskykurniawan15/payrolls/utils/jwt"
 )
 
 type (
 	IUserService interface {
 		Login(ctx context.Context, req user.LoginRequest) (user.LoginResponse, error)
 		Profile(ctx context.Context, userID uint) (user.ProfileResponse, error)
+		CreateUser(ctx context.Context, req user.CreateUserRequest) (user.CreateUserResponse, error)
 	}
 
 	UserService struct {
@@ -31,7 +31,7 @@ func NewUserService(config config.Config, userRepo userRepo.IUserRepository) IUs
 	}
 }
 
-func (service UserService) Login(ctx context.Context, req user.LoginRequest) (response user.LoginResponse, err error) {
+func (service *UserService) Login(ctx context.Context, req user.LoginRequest) (response user.LoginResponse, err error) {
 	// Get user by username
 	userData, err := service.userRepo.GetUserByUsername(ctx, req.Username)
 	if err != nil {
@@ -39,13 +39,18 @@ func (service UserService) Login(ctx context.Context, req user.LoginRequest) (re
 	}
 
 	// Verify password
-	err = bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(req.Password))
+	err = bcrypt.VerifyPassword(userData.Password, req.Password)
 	if err != nil {
 		return response, errors.New("invalid username or password")
 	}
 
 	// Generate JWT token
-	token, expiresAt, err := service.generateJWT(userData)
+	jwtConfig := jwt.JWTConfig{
+		SecretKey: service.config.JWT.SecretKey,
+		Expired:   service.config.JWT.Expired,
+	}
+
+	token, expiresAt, err := jwt.GenerateToken(jwtConfig, userData.ID, userData.Username, userData.Role)
 	if err != nil {
 		return response, err
 	}
@@ -61,7 +66,7 @@ func (service UserService) Login(ctx context.Context, req user.LoginRequest) (re
 	}, nil
 }
 
-func (service UserService) Profile(ctx context.Context, userID uint) (response user.ProfileResponse, err error) {
+func (service *UserService) Profile(ctx context.Context, userID uint) (response user.ProfileResponse, err error) {
 	// Get user data from database
 	userData, err := service.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
@@ -77,22 +82,41 @@ func (service UserService) Profile(ctx context.Context, userID uint) (response u
 	}, nil
 }
 
-func (service UserService) generateJWT(user user.User) (string, time.Time, error) {
-	expiresAt := time.Now().Add(time.Duration(service.config.JWT.Expired) * time.Hour)
-
-	claims := jwt.MapClaims{
-		"user_id":  user.ID,
-		"username": user.Username,
-		"role":     user.Role,
-		"exp":      expiresAt.Unix(),
-		"iat":      time.Now().Unix(),
+func (service *UserService) CreateUser(ctx context.Context, req user.CreateUserRequest) (response user.CreateUserResponse, err error) {
+	// Check if username already exists
+	existingUser, _ := service.userRepo.GetUserByUsername(ctx, req.Username)
+	if existingUser.ID != 0 {
+		return response, errors.New("username already exists")
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(service.config.JWT.SecretKey))
+	// Validate password strength
+	if !bcrypt.IsValidPassword(req.Password, 6) {
+		return response, errors.New("password must be at least 6 characters long")
+	}
+
+	// Hash password using environment cost
+	hashedPassword, err := bcrypt.HashPasswordWithEnvCost(req.Password)
 	if err != nil {
-		return "", time.Time{}, err
+		return response, errors.New("failed to hash password")
 	}
 
-	return tokenString, expiresAt, nil
+	// Create user data
+	userData := user.User{
+		Username: req.Username,
+		Password: hashedPassword,
+		Role:     req.Role,
+	}
+
+	// Save user to database
+	createdUser, err := service.userRepo.CreateUser(ctx, userData)
+	if err != nil {
+		return response, errors.New("failed to create user")
+	}
+
+	return user.CreateUserResponse{
+		ID:        createdUser.ID,
+		Username:  createdUser.Username,
+		Role:      createdUser.Role,
+		CreatedAt: createdUser.CreatedAt,
+	}, nil
 }

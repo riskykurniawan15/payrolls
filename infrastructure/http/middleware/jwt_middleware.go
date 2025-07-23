@@ -4,27 +4,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/riskykurniawan15/payrolls/infrastructure/http/entities"
+	"github.com/riskykurniawan15/payrolls/utils/jwt"
 )
 
 type (
 	JWTConfig struct {
 		SecretKey string
-	}
-
-	JWTClaims struct {
-		UserID   uint   `json:"user_id"`
-		Username string `json:"username"`
-		Role     string `json:"role"`
-		jwt.RegisteredClaims
-	}
-
-	UserContext struct {
-		UserID   uint   `json:"user_id"`
-		Username string `json:"username"`
-		Role     string `json:"role"`
 	}
 )
 
@@ -50,30 +37,15 @@ func JWTMiddleware(config JWTConfig) echo.MiddlewareFunc {
 			tokenString := tokenParts[1]
 
 			// Parse and validate JWT token
-			token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
-				return []byte(config.SecretKey), nil
-			})
-
-			if err != nil || !token.Valid {
+			claims, err := jwt.ParseToken(tokenString, config.SecretKey)
+			if err != nil {
 				return c.JSON(http.StatusUnauthorized, entities.ResponseFormater(http.StatusUnauthorized, map[string]interface{}{
 					"error": "Invalid or expired token",
 				}))
 			}
 
-			// Extract claims
-			claims, ok := token.Claims.(*JWTClaims)
-			if !ok {
-				return c.JSON(http.StatusUnauthorized, entities.ResponseFormater(http.StatusUnauthorized, map[string]interface{}{
-					"error": "Invalid token claims",
-				}))
-			}
-
-			// Create user context struct
-			userCtx := UserContext{
-				UserID:   claims.UserID,
-				Username: claims.Username,
-				Role:     claims.Role,
-			}
+			// Extract user context
+			userCtx := jwt.ExtractUserContext(claims)
 
 			// Set user context to context
 			c.Set("user", userCtx)
@@ -84,8 +56,8 @@ func JWTMiddleware(config JWTConfig) echo.MiddlewareFunc {
 }
 
 // Helper function to get user context from context
-func GetUserContext(c echo.Context) UserContext {
-	userCtx, _ := c.Get("user").(UserContext)
+func GetUserContext(c echo.Context) jwt.UserContext {
+	userCtx, _ := c.Get("user").(jwt.UserContext)
 	return userCtx
 }
 

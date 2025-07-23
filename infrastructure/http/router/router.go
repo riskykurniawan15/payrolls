@@ -4,13 +4,14 @@ import (
 	"github.com/labstack/echo/v4"
 	dep "github.com/riskykurniawan15/payrolls/infrastructure/http"
 	"github.com/riskykurniawan15/payrolls/infrastructure/http/middleware"
+	"github.com/riskykurniawan15/payrolls/utils/validator"
 )
 
 func Routers(dep *dep.Dependencies, jwtSecret string) *echo.Echo {
 	engine := echo.New()
 
 	// Add custom validator
-	engine.Validator = middleware.NewCustomValidator()
+	engine.Validator = validator.NewCustomValidator()
 
 	// Add request ID middleware globally
 	engine.Use(middleware.RequestIDMiddleware())

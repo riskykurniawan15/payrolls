@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"github.com/go-faker/faker/v4"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/riskykurniawan15/payrolls/constant"
+	"github.com/riskykurniawan15/payrolls/utils/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -42,7 +43,7 @@ func (s *UserSeeder) Seed() error {
 
 func (s *UserSeeder) createAdminUser() error {
 	// Hash password for admin
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.HashPasswordWithEnvCost("admin")
 	if err != nil {
 		return err
 	}
@@ -51,7 +52,7 @@ func (s *UserSeeder) createAdminUser() error {
 		ID:        defaultCreatedBy,
 		Username:  "admin",
 		Password:  string(hashedPassword),
-		Roles:     "admin",
+		Roles:     constant.AdminRole,
 		Salary:    0,
 		CreatedBy: defaultCreatedBy, // Self-reference for admin
 		CreatedAt: time.Now(),
@@ -102,7 +103,7 @@ func (s *UserSeeder) createEmployeeUsers() error {
 		username = strings.ReplaceAll(username, "'", "")
 
 		// Hash password (same as username)
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(username), bcrypt.DefaultCost)
+		hashedPassword, err := bcrypt.HashPasswordWithEnvCost(username)
 		if err != nil {
 			return err
 		}
@@ -110,12 +111,12 @@ func (s *UserSeeder) createEmployeeUsers() error {
 		// Random salary from ranges
 		salaryRange := salaryRanges[i%len(salaryRanges)]
 		salary := salaryRange.min + rand.Float64()*(salaryRange.max-salaryRange.min)
-		salary = float64(int(salary*100)) / 100 // Round to 2 decimal places
+		salary = float64(int(salary))
 
 		employeeUser := User{
 			Username:  username,
 			Password:  string(hashedPassword),
-			Roles:     "employee",
+			Roles:     constant.EmployeeRole,
 			Salary:    salary,
 			CreatedBy: defaultCreatedBy,
 			CreatedAt: time.Now(),
