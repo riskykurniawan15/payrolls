@@ -10,10 +10,13 @@ import (
 	"github.com/google/wire"
 	"github.com/riskykurniawan15/payrolls/config"
 	health3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/health"
+	period3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/period"
 	user3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/user"
 	"github.com/riskykurniawan15/payrolls/repositories/health"
+	"github.com/riskykurniawan15/payrolls/repositories/period"
 	"github.com/riskykurniawan15/payrolls/repositories/user"
 	health2 "github.com/riskykurniawan15/payrolls/services/health"
+	period2 "github.com/riskykurniawan15/payrolls/services/period"
 	user2 "github.com/riskykurniawan15/payrolls/services/user"
 	"gorm.io/gorm"
 )
@@ -27,9 +30,13 @@ func InitializeHandler(db *gorm.DB, cfg config.Config) *Dependencies {
 	iUserRepository := user.NewUserRepository(db)
 	iUserService := user2.NewUserService(cfg, iUserRepository)
 	iUserHandler := user3.NewUserHandlers(iUserService)
+	iPeriodRepository := period.NewPeriodRepository(db)
+	iPeriodService := period2.NewPeriodService(iPeriodRepository)
+	iPeriodHandler := period3.NewPeriodHandlers(iPeriodService)
 	dependencies := &Dependencies{
 		HealthHandlers: iHealthHandler,
 		UserHandlers:   iUserHandler,
+		PeriodHandlers: iPeriodHandler,
 	}
 	return dependencies
 }
@@ -39,10 +46,11 @@ func InitializeHandler(db *gorm.DB, cfg config.Config) *Dependencies {
 type Dependencies struct {
 	HealthHandlers health3.IHealthHandler
 	UserHandlers   user3.IUserHandler
+	PeriodHandlers period3.IPeriodHandler
 }
 
-var RepositorySet = wire.NewSet(health.NewHealthRepositories, user.NewUserRepository)
+var RepositorySet = wire.NewSet(health.NewHealthRepositories, user.NewUserRepository, period.NewPeriodRepository)
 
-var ServicesSet = wire.NewSet(health2.NewHealthService, user2.NewUserService)
+var ServicesSet = wire.NewSet(health2.NewHealthService, user2.NewUserService, period2.NewPeriodService)
 
-var HandlerSet = wire.NewSet(health3.NewHealthHandlers, user3.NewUserHandlers)
+var HandlerSet = wire.NewSet(health3.NewHealthHandlers, user3.NewUserHandlers, period3.NewPeriodHandlers)

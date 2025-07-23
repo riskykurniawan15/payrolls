@@ -27,5 +27,15 @@ func Routers(dep *dep.Dependencies, jwtSecret string) *echo.Echo {
 		protected.GET("/profile", dep.UserHandlers.Profile)
 	}
 
+	// Period routes
+	periods := engine.Group("/periods", middleware.JWTMiddleware(jwtConfig), middleware.AdminOnlyMiddleware())
+	{
+		periods.POST("", dep.PeriodHandlers.Create)
+		periods.GET("", dep.PeriodHandlers.List)
+		periods.GET("/:id", dep.PeriodHandlers.GetByID)
+		periods.PUT("/:id", dep.PeriodHandlers.Update)
+		periods.DELETE("/:id", dep.PeriodHandlers.Delete)
+	}
+
 	return engine
 }

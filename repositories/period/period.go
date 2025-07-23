@@ -1,0 +1,235 @@
+package period
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"time"
+
+	"math/rand"
+
+	"github.com/riskykurniawan15/payrolls/constant"
+	"github.com/riskykurniawan15/payrolls/models/period"
+	"gorm.io/gorm"
+)
+
+type (
+	IPeriodRepository interface {
+		Create(ctx context.Context, period *period.Period) error
+		GetByID(ctx context.Context, id uint) (*period.Period, error)
+		GetByCode(ctx context.Context, code string) (*period.Period, error)
+		Update(ctx context.Context, id uint, updates map[string]interface{}) error
+		Delete(ctx context.Context, id uint) error
+		List(ctx context.Context, req period.ListPeriodsRequest) (*period.ListPeriodsResponse, error)
+		IsCodeExists(ctx context.Context, code string, excludeID ...uint) (bool, error)
+		CheckDateConflict(ctx context.Context, startDate, endDate time.Time, excludeID ...uint) (bool, error)
+		GetConflictingPeriods(ctx context.Context, startDate, endDate time.Time, excludeID ...uint) ([]period.Period, error)
+		GenerateUniqueCode(ctx context.Context) (string, error)
+	}
+
+	PeriodRepository struct {
+		db *gorm.DB
+	}
+)
+
+func NewPeriodRepository(db *gorm.DB) IPeriodRepository {
+	return &PeriodRepository{db: db}
+}
+
+func (r *PeriodRepository) Create(ctx context.Context, period *period.Period) error {
+	return r.db.WithContext(ctx).Create(period).Error
+}
+
+func (r *PeriodRepository) GetByID(ctx context.Context, id uint) (*period.Period, error) {
+	var p period.Period
+	err := r.db.WithContext(ctx).Where("id = ?", id).First(&p).Error
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r *PeriodRepository) GetByCode(ctx context.Context, code string) (*period.Period, error) {
+	var p period.Period
+	err := r.db.WithContext(ctx).Where("LOWER(code) = LOWER(?)", code).First(&p).Error
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r *PeriodRepository) Update(ctx context.Context, id uint, updates map[string]interface{}) error {
+	return r.db.WithContext(ctx).Model(&period.Period{}).Where("id = ?", id).Updates(updates).Error
+}
+
+func (r *PeriodRepository) Delete(ctx context.Context, id uint) error {
+	// Soft delete by setting status to 9
+	return r.db.WithContext(ctx).Model(&period.Period{}).Where("id = ?", id).Update("status", 9).Error
+}
+
+func (r *PeriodRepository) List(ctx context.Context, req period.ListPeriodsRequest) (*period.ListPeriodsResponse, error) {
+	var periods []period.Period
+	var total int64
+
+	// Build query
+	query := r.db.WithContext(ctx).Model(&period.Period{}).Where("status != ?", constant.StatusDeleted)
+
+	// Apply search filter
+	if req.Search != "" {
+		searchTerm := "%" + strings.ToLower(req.Search) + "%"
+		query = query.Where("LOWER(name) LIKE ? OR LOWER(code) LIKE ?", searchTerm, searchTerm)
+	}
+
+	// Apply status filter
+	if req.Status != nil {
+		query = query.Where("status = ?", *req.Status)
+	}
+
+	// Count total records
+	if err := query.Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// Apply sorting
+	if req.SortBy != "" {
+		sortOrder := "ASC"
+		if req.SortDesc {
+			sortOrder = "DESC"
+		}
+		query = query.Order(fmt.Sprintf("%s %s", req.SortBy, sortOrder))
+	} else {
+		query = query.Order("created_at DESC")
+	}
+
+	// Apply pagination
+	offset := (req.Page - 1) * req.Limit
+	query = query.Offset(offset).Limit(req.Limit)
+
+	// Execute query
+	if err := query.Find(&periods).Error; err != nil {
+		return nil, err
+	}
+
+	// Convert to response
+	var responses []period.PeriodResponse
+	for _, p := range periods {
+		responses = append(responses, r.toResponse(p))
+	}
+
+	// Calculate pagination info
+	totalPages := int((total + int64(req.Limit) - 1) / int64(req.Limit))
+
+	return &period.ListPeriodsResponse{
+		Data: responses,
+		Pagination: period.Pagination{
+			Page:       req.Page,
+			Limit:      req.Limit,
+			Total:      int(total),
+			TotalPages: totalPages,
+		},
+	}, nil
+}
+
+func (r *PeriodRepository) IsCodeExists(ctx context.Context, code string, excludeID ...uint) (bool, error) {
+	var count int64
+	query := r.db.WithContext(ctx).Model(&period.Period{}).
+		Where("LOWER(code) = LOWER(?) AND status != ?", code, constant.StatusDeleted)
+
+	if len(excludeID) > 0 {
+		query = query.Where("id != ?", excludeID[0])
+	}
+
+	err := query.Count(&count).Error
+	return count > 0, err
+}
+
+// CheckDateConflict checks if the given date range conflicts with existing periods
+func (r *PeriodRepository) CheckDateConflict(ctx context.Context, startDate, endDate time.Time, excludeID ...uint) (bool, error) {
+	var count int64
+	query := r.db.WithContext(ctx).Model(&period.Period{}).
+		Where("status != ?", constant.StatusDeleted).
+		Where("(start_date <= ? AND end_date >= ?) OR (start_date <= ? AND end_date >= ?) OR (start_date >= ? AND end_date <= ?)",
+			startDate, startDate,
+			endDate, endDate,
+			startDate, endDate,
+		)
+
+	if len(excludeID) > 0 {
+		query = query.Where("id != ?", excludeID[0])
+	}
+
+	err := query.Count(&count).Error
+	return count > 0, err
+}
+
+// GetConflictingPeriods returns periods that conflict with the given date range
+func (r *PeriodRepository) GetConflictingPeriods(ctx context.Context, startDate, endDate time.Time, excludeID ...uint) ([]period.Period, error) {
+	var periods []period.Period
+	query := r.db.WithContext(ctx).Model(&period.Period{}).
+		Where("status != ?", constant.StatusDeleted).
+		Where("(start_date <= ? AND end_date >= ?) OR (start_date <= ? AND end_date >= ?) OR (start_date >= ? AND end_date <= ?)",
+			startDate, startDate,
+			endDate, endDate,
+			startDate, endDate,
+		)
+
+	if len(excludeID) > 0 {
+		query = query.Where("id != ?", excludeID[0])
+	}
+
+	err := query.Find(&periods).Error
+	return periods, err
+}
+
+func (r *PeriodRepository) GenerateUniqueCode(ctx context.Context) (string, error) {
+	// Import the code generator
+	codeGen := "PRD/" + time.Now().Format("20060102") + "/"
+
+	// Try up to 10 times to generate a unique code
+	for i := 0; i < 10; i++ {
+		randomCode := generateRandomCode()
+		fullCode := codeGen + randomCode
+
+		exists, err := r.IsCodeExists(ctx, fullCode)
+		if err != nil {
+			return "", err
+		}
+
+		if !exists {
+			return fullCode, nil
+		}
+	}
+
+	return "", fmt.Errorf("failed to generate unique code after 10 attempts")
+}
+
+// Helper function to generate random 3-character code
+func generateRandomCode() string {
+	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+	const codeLength = 3
+
+	code := make([]byte, codeLength)
+	for i := range code {
+		code[i] = chars[rand.Intn(len(chars))]
+	}
+
+	return string(code)
+}
+
+// Helper function to convert Period to PeriodResponse
+func (r *PeriodRepository) toResponse(p period.Period) period.PeriodResponse {
+	return period.PeriodResponse{
+		ID:                    p.ID,
+		Code:                  p.Code,
+		Name:                  p.Name,
+		StartDate:             p.StartDate,
+		EndDate:               p.EndDate,
+		Status:                p.Status,
+		UserExecutablePayroll: p.UserExecutablePayroll,
+		PayrollDate:           p.PayrollDate,
+		CreatedBy:             p.CreatedBy,
+		CreatedAt:             p.CreatedAt,
+		UpdatedBy:             p.UpdatedBy,
+		UpdatedAt:             p.UpdatedAt,
+	}
+}
