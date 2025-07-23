@@ -13,13 +13,16 @@ import (
 	"gorm.io/gorm"
 
 	attendanceRepositories "github.com/riskykurniawan15/payrolls/repositories/attendance"
+	overtimeRepositories "github.com/riskykurniawan15/payrolls/repositories/overtime"
 	attendanceServices "github.com/riskykurniawan15/payrolls/services/attendance"
 	healthServices "github.com/riskykurniawan15/payrolls/services/health"
+	overtimeServices "github.com/riskykurniawan15/payrolls/services/overtime"
 	periodServices "github.com/riskykurniawan15/payrolls/services/period"
 	userServices "github.com/riskykurniawan15/payrolls/services/user"
 
 	attendanceHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/attendance"
 	healthHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/health"
+	overtimeHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/overtime"
 	periodHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/period"
 	userHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/user"
 )
@@ -29,6 +32,7 @@ type Dependencies struct {
 	UserHandlers       userHandlers.IUserHandler
 	PeriodHandlers     periodHandlers.IPeriodHandler
 	AttendanceHandlers attendanceHandlers.IAttendanceHandler
+	OvertimeHandlers   overtimeHandlers.IOvertimeHandler
 }
 
 func InitializeHandler(db *gorm.DB, cfg config.Config, logger logger.Logger) *Dependencies {
@@ -46,6 +50,7 @@ var RepositorySet = wire.NewSet(
 	userRepositories.NewUserRepository,
 	periodRepositories.NewPeriodRepository,
 	attendanceRepositories.NewAttendanceRepository,
+	overtimeRepositories.NewOvertimeRepository,
 )
 
 var ServicesSet = wire.NewSet(
@@ -53,6 +58,7 @@ var ServicesSet = wire.NewSet(
 	userServices.NewUserService,
 	periodServices.NewPeriodService,
 	attendanceServices.NewAttendanceService,
+	overtimeServices.NewOvertimeService,
 )
 
 var HandlerSet = wire.NewSet(
@@ -60,4 +66,5 @@ var HandlerSet = wire.NewSet(
 	userHandlers.NewUserHandlers,
 	periodHandlers.NewPeriodHandlers,
 	attendanceHandlers.NewAttendanceHandlers,
+	overtimeHandlers.NewOvertimeHandlers,
 )

@@ -14,6 +14,7 @@ type (
 		GetAttendances(ctx context.Context, userID uint, page, limit int, startDate, endDate *time.Time) ([]attendance.Attendance, int64, error)
 		GetAttendanceByID(ctx context.Context, id, userID uint) (attendance.Attendance, error)
 		GetLatestCheckInByUserID(ctx context.Context, userID uint, date *time.Time) (attendance.Attendance, error)
+		GetByUserAndDate(ctx context.Context, userID uint, date time.Time) (*attendance.Attendance, error)
 		CreateAttendance(ctx context.Context, attendance attendance.Attendance) (attendance.Attendance, error)
 		UpdateAttendance(ctx context.Context, attendance attendance.Attendance) (attendance.Attendance, error)
 		GetAttendanceByIDForUpdate(ctx context.Context, id, userID uint) (attendance.Attendance, error)
@@ -82,6 +83,27 @@ func (repo *AttendanceRepository) GetAttendanceByID(ctx context.Context, id, use
 	}
 
 	return attendance, nil
+}
+
+func (repo *AttendanceRepository) GetByUserAndDate(ctx context.Context, userID uint, date time.Time) (*attendance.Attendance, error) {
+	var attendance attendance.Attendance
+
+	// Get attendance for the specific date (from start of day to end of day)
+	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	endOfDay := startOfDay.Add(24 * time.Hour)
+
+	err := repo.db.WithContext(ctx).
+		Where("user_id = ? AND check_in_date >= ? AND check_in_date < ?", userID, startOfDay, endOfDay).
+		First(&attendance).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("record not found")
+		}
+		return nil, err
+	}
+
+	return &attendance, nil
 }
 
 func (repo *AttendanceRepository) GetLatestCheckInByUserID(ctx context.Context, userID uint, date *time.Time) (attendance.Attendance, error) {

@@ -47,5 +47,15 @@ func Routers(dep *dep.Dependencies, jwtSecret string) *echo.Echo {
 		attendances.POST("/check-out/:id", dep.AttendanceHandlers.CheckOutByID)
 	}
 
+	// Overtime routes (for all authenticated users)
+	overtimes := engine.Group("/overtimes", middleware.JWTMiddleware(jwtConfig), middleware.EmployeeOnlyMiddleware())
+	{
+		overtimes.POST("", dep.OvertimeHandlers.Create)
+		overtimes.GET("", dep.OvertimeHandlers.List)
+		overtimes.GET("/:id", dep.OvertimeHandlers.GetByID)
+		overtimes.PUT("/:id", dep.OvertimeHandlers.Update)
+		overtimes.DELETE("/:id", dep.OvertimeHandlers.Delete)
+	}
+
 	return engine
 }
