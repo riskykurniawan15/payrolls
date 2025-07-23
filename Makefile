@@ -61,10 +61,14 @@ wire:
 	@echo "Generating wire code..."
 	go generate ./infrastructure/http
 
-# Run migration up
+# Run migration create
+# Migration commands usage:
+#   make migrate-create name=migration_name
+#   Example: make migrate-create name=create_users_table
+#   Example: make migrate-create name=add_email_to_users
 migrate-create:
 	@echo "Running migrations create..."
-	migrate create -ext sql -dir database/migrations create_users_table
+	migrate create -ext sql -dir database/migrations $(name)
 
 # Run migration up
 migrate-up:
