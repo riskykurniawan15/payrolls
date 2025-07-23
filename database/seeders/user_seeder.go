@@ -51,7 +51,7 @@ func (s *UserSeeder) createAdminUser() error {
 		Username:  "admin",
 		Password:  string(hashedPassword),
 		Roles:     "admin",
-		Salary:    15000000.00,
+		Salary:    0,
 		CreatedBy: 1, // Self-reference for admin
 		CreatedAt: time.Now(),
 		// UpdatedAt: time.Now(), // Leave empty for new records
