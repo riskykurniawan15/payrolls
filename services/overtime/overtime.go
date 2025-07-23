@@ -16,10 +16,10 @@ import (
 type (
 	IOvertimeService interface {
 		Create(ctx context.Context, req overtime.CreateOvertimeRequest, userID uint) (*overtime.OvertimeResponse, error)
-		GetByID(ctx context.Context, id uint) (*overtime.OvertimeResponse, error)
+		GetByID(ctx context.Context, id uint, userID uint) (*overtime.OvertimeResponse, error)
 		Update(ctx context.Context, id uint, req overtime.UpdateOvertimeRequest, userID uint) (*overtime.OvertimeResponse, error)
-		Delete(ctx context.Context, id uint) error
-		List(ctx context.Context, req overtime.ListOvertimesRequest) (*overtime.ListOvertimesResponse, error)
+		Delete(ctx context.Context, id uint, userID uint) error
+		List(ctx context.Context, req overtime.ListOvertimesRequest, userID uint) (*overtime.ListOvertimesResponse, error)
 	}
 
 	OvertimeService struct {
@@ -40,7 +40,7 @@ func NewOvertimeService(logger logger.Logger, overtimeRepo overtimeRepo.IOvertim
 func (s *OvertimeService) Create(ctx context.Context, req overtime.CreateOvertimeRequest, userID uint) (*overtime.OvertimeResponse, error) {
 	requestID := middleware.GetRequestIDFromContext(ctx)
 	s.logger.InfoT("processing create overtime request", requestID, map[string]interface{}{
-		"user_id":          req.UserID,
+		"user_id":          userID,
 		"overtimes_date":   req.OvertimesDate,
 		"total_hours_time": req.TotalHoursTime,
 		"created_by":       userID,
@@ -73,23 +73,23 @@ func (s *OvertimeService) Create(ctx context.Context, req overtime.CreateOvertim
 	} else {
 		// For weekdays, check if user has checked out attendance
 		s.logger.InfoT("checking attendance checkout for weekday", requestID, map[string]interface{}{
-			"user_id":        req.UserID,
+			"user_id":        userID,
 			"overtimes_date": overtimeDate.Format("2006-01-02"),
 		})
 
 		// Get attendance for the specific date
-		attendanceRecord, err := s.attendanceRepo.GetByUserAndDate(ctx, req.UserID, overtimeDate)
+		attendanceRecord, err := s.attendanceRepo.GetByUserAndDate(ctx, userID, overtimeDate)
 		if err != nil {
 			if err.Error() == "record not found" {
 				s.logger.WarningT("no attendance record found for weekday", requestID, map[string]interface{}{
-					"user_id":        req.UserID,
+					"user_id":        userID,
 					"overtimes_date": overtimeDate.Format("2006-01-02"),
 				})
 				return nil, fmt.Errorf("attendance record not found for %s. Please check in and check out first", overtimeDate.Format("2006-01-02"))
 			}
 			s.logger.ErrorT("failed to get attendance record", requestID, map[string]interface{}{
 				"error":          err.Error(),
-				"user_id":        req.UserID,
+				"user_id":        userID,
 				"overtimes_date": overtimeDate.Format("2006-01-02"),
 			})
 			return nil, fmt.Errorf("failed to check attendance: %w", err)
@@ -98,7 +98,7 @@ func (s *OvertimeService) Create(ctx context.Context, req overtime.CreateOvertim
 		// Check if user has checked out
 		if attendanceRecord.CheckOutDate == nil {
 			s.logger.WarningT("user has not checked out for weekday", requestID, map[string]interface{}{
-				"user_id":        req.UserID,
+				"user_id":        userID,
 				"overtimes_date": overtimeDate.Format("2006-01-02"),
 				"check_in_date":  attendanceRecord.CheckInDate.Format("2006-01-02 15:04:05"),
 			})
@@ -106,7 +106,7 @@ func (s *OvertimeService) Create(ctx context.Context, req overtime.CreateOvertim
 		}
 
 		s.logger.InfoT("attendance checkout verified", requestID, map[string]interface{}{
-			"user_id":        req.UserID,
+			"user_id":        userID,
 			"overtimes_date": overtimeDate.Format("2006-01-02"),
 			"check_in_date":  attendanceRecord.CheckInDate.Format("2006-01-02 15:04:05"),
 			"check_out_date": attendanceRecord.CheckOutDate.Format("2006-01-02 15:04:05"),
@@ -114,11 +114,11 @@ func (s *OvertimeService) Create(ctx context.Context, req overtime.CreateOvertim
 	}
 
 	// Check total hours limit (max 3 hours per day)
-	totalHours, err := s.overtimeRepo.GetTotalHoursByUserAndDate(ctx, req.UserID, overtimeDate)
+	totalHours, err := s.overtimeRepo.GetTotalHoursByUserAndDate(ctx, userID, overtimeDate)
 	if err != nil {
 		s.logger.ErrorT("failed to get total hours", requestID, map[string]interface{}{
 			"error":          err.Error(),
-			"user_id":        req.UserID,
+			"user_id":        userID,
 			"overtimes_date": overtimeDate.Format("2006-01-02"),
 		})
 		return nil, fmt.Errorf("failed to check total hours: %w", err)
@@ -127,7 +127,7 @@ func (s *OvertimeService) Create(ctx context.Context, req overtime.CreateOvertim
 	newTotalHours := totalHours + req.TotalHoursTime
 	if newTotalHours > 3.0 {
 		s.logger.WarningT("total hours exceed limit", requestID, map[string]interface{}{
-			"user_id":         req.UserID,
+			"user_id":         userID,
 			"overtimes_date":  overtimeDate.Format("2006-01-02"),
 			"current_total":   totalHours,
 			"requested_hours": req.TotalHoursTime,
@@ -139,7 +139,7 @@ func (s *OvertimeService) Create(ctx context.Context, req overtime.CreateOvertim
 	}
 
 	s.logger.InfoT("overtime validation passed", requestID, map[string]interface{}{
-		"user_id":          req.UserID,
+		"user_id":          userID,
 		"overtimes_date":   overtimeDate.Format("2006-01-02"),
 		"total_hours_time": req.TotalHoursTime,
 		"current_total":    totalHours,
@@ -148,7 +148,7 @@ func (s *OvertimeService) Create(ctx context.Context, req overtime.CreateOvertim
 
 	// Create overtime
 	overtimeRecord := &overtime.Overtime{
-		UserID:         req.UserID,
+		UserID:         userID,
 		OvertimesDate:  overtimeDate,
 		TotalHoursTime: req.TotalHoursTime,
 		CreatedBy:      userID,
@@ -158,7 +158,7 @@ func (s *OvertimeService) Create(ctx context.Context, req overtime.CreateOvertim
 	}
 
 	s.logger.InfoT("creating overtime in database", requestID, map[string]interface{}{
-		"user_id":          req.UserID,
+		"user_id":          userID,
 		"overtimes_date":   overtimeDate.Format("2006-01-02"),
 		"total_hours_time": req.TotalHoursTime,
 		"created_by":       userID,
@@ -167,7 +167,7 @@ func (s *OvertimeService) Create(ctx context.Context, req overtime.CreateOvertim
 	if err := s.overtimeRepo.Create(ctx, overtimeRecord); err != nil {
 		s.logger.ErrorT("failed to create overtime", requestID, map[string]interface{}{
 			"error":            err.Error(),
-			"user_id":          req.UserID,
+			"user_id":          userID,
 			"overtimes_date":   overtimeDate.Format("2006-01-02"),
 			"total_hours_time": req.TotalHoursTime,
 		})
@@ -176,7 +176,7 @@ func (s *OvertimeService) Create(ctx context.Context, req overtime.CreateOvertim
 
 	s.logger.InfoT("overtime created successfully", requestID, map[string]interface{}{
 		"overtime_id":      overtimeRecord.ID,
-		"user_id":          req.UserID,
+		"user_id":          userID,
 		"overtimes_date":   overtimeDate.Format("2006-01-02"),
 		"total_hours_time": req.TotalHoursTime,
 	})
@@ -186,7 +186,7 @@ func (s *OvertimeService) Create(ctx context.Context, req overtime.CreateOvertim
 	return &response, nil
 }
 
-func (s *OvertimeService) GetByID(ctx context.Context, id uint) (*overtime.OvertimeResponse, error) {
+func (s *OvertimeService) GetByID(ctx context.Context, id uint, userID uint) (*overtime.OvertimeResponse, error) {
 	requestID := middleware.GetRequestIDFromContext(ctx)
 	s.logger.InfoT("processing get overtime by ID request", requestID, map[string]interface{}{
 		"overtime_id": id,
@@ -199,6 +199,16 @@ func (s *OvertimeService) GetByID(ctx context.Context, id uint) (*overtime.Overt
 			"overtime_id": id,
 		})
 		return nil, fmt.Errorf("overtime not found: %w", err)
+	}
+
+	// Check if overtime belongs to the user
+	if o.UserID != userID {
+		s.logger.WarningT("user trying to access overtime of another user", requestID, map[string]interface{}{
+			"overtime_id":      id,
+			"overtime_user_id": o.UserID,
+			"request_user_id":  userID,
+		})
+		return nil, fmt.Errorf("overtime not found")
 	}
 
 	s.logger.InfoT("overtime retrieved successfully", requestID, map[string]interface{}{
@@ -227,6 +237,16 @@ func (s *OvertimeService) Update(ctx context.Context, id uint, req overtime.Upda
 			"overtime_id": id,
 		})
 		return nil, fmt.Errorf("overtime not found: %w", err)
+	}
+
+	// Check if overtime belongs to the user
+	if existingOvertime.UserID != userID {
+		s.logger.WarningT("user trying to update overtime of another user", requestID, map[string]interface{}{
+			"overtime_id":      id,
+			"overtime_user_id": existingOvertime.UserID,
+			"request_user_id":  userID,
+		})
+		return nil, fmt.Errorf("overtime not found")
 	}
 
 	s.logger.InfoT("overtime validation passed", requestID, map[string]interface{}{
@@ -312,7 +332,7 @@ func (s *OvertimeService) Update(ctx context.Context, id uint, req overtime.Upda
 	return &response, nil
 }
 
-func (s *OvertimeService) Delete(ctx context.Context, id uint) error {
+func (s *OvertimeService) Delete(ctx context.Context, id uint, userID uint) error {
 	requestID := middleware.GetRequestIDFromContext(ctx)
 	s.logger.InfoT("processing delete overtime request", requestID, map[string]interface{}{
 		"overtime_id": id,
@@ -326,6 +346,16 @@ func (s *OvertimeService) Delete(ctx context.Context, id uint) error {
 			"overtime_id": id,
 		})
 		return fmt.Errorf("overtime not found: %w", err)
+	}
+
+	// Check if overtime belongs to the user
+	if existingOvertime.UserID != userID {
+		s.logger.WarningT("user trying to delete overtime of another user", requestID, map[string]interface{}{
+			"overtime_id":      id,
+			"overtime_user_id": existingOvertime.UserID,
+			"request_user_id":  userID,
+		})
+		return fmt.Errorf("overtime not found")
 	}
 
 	s.logger.InfoT("overtime validation passed for delete", requestID, map[string]interface{}{
@@ -354,12 +384,11 @@ func (s *OvertimeService) Delete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (s *OvertimeService) List(ctx context.Context, req overtime.ListOvertimesRequest) (*overtime.ListOvertimesResponse, error) {
+func (s *OvertimeService) List(ctx context.Context, req overtime.ListOvertimesRequest, userID uint) (*overtime.ListOvertimesResponse, error) {
 	requestID := middleware.GetRequestIDFromContext(ctx)
 	s.logger.InfoT("processing list overtimes request", requestID, map[string]interface{}{
 		"page":       req.Page,
 		"limit":      req.Limit,
-		"user_id":    req.UserID,
 		"start_date": req.StartDate,
 		"end_date":   req.EndDate,
 		"sort_by":    req.SortBy,
@@ -377,14 +406,13 @@ func (s *OvertimeService) List(ctx context.Context, req overtime.ListOvertimesRe
 	s.logger.InfoT("list overtimes with filters", requestID, map[string]interface{}{
 		"page":       req.Page,
 		"limit":      req.Limit,
-		"user_id":    req.UserID,
 		"start_date": req.StartDate,
 		"end_date":   req.EndDate,
 		"sort_by":    req.SortBy,
 		"sort_desc":  req.SortDesc,
 	})
 
-	response, err := s.overtimeRepo.List(ctx, req)
+	response, err := s.overtimeRepo.List(ctx, req, userID)
 	if err != nil {
 		s.logger.ErrorT("failed to list overtimes", requestID, map[string]interface{}{
 			"error": err.Error(),

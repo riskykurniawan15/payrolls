@@ -19,7 +19,6 @@ type (
 
 	// CreateOvertimeRequest for creating new overtime
 	CreateOvertimeRequest struct {
-		UserID         uint    `json:"user_id" validate:"required"`
 		OvertimesDate  string  `json:"overtimes_date" validate:"required,datetime=2006-01-02"`
 		TotalHoursTime float64 `json:"total_hours_time" validate:"required,min=0.01,max=3.00"`
 	}
@@ -46,7 +45,6 @@ type (
 	ListOvertimesRequest struct {
 		Page      int     `json:"page" validate:"min=1"`
 		Limit     int     `json:"limit" validate:"min=1,max=100"`
-		UserID    *uint   `json:"user_id"`
 		StartDate *string `json:"start_date" validate:"omitempty,datetime=2006-01-02"`
 		EndDate   *string `json:"end_date" validate:"omitempty,datetime=2006-01-02"`
 		SortBy    string  `json:"sort_by" validate:"omitempty,oneof=id user_id overtimes_date total_hours_time created_at"`

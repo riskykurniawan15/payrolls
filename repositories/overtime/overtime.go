@@ -15,7 +15,7 @@ type (
 		GetByID(ctx context.Context, id uint) (*overtime.Overtime, error)
 		Update(ctx context.Context, id uint, updates map[string]interface{}) error
 		Delete(ctx context.Context, id uint) error
-		List(ctx context.Context, req overtime.ListOvertimesRequest) (*overtime.ListOvertimesResponse, error)
+		List(ctx context.Context, req overtime.ListOvertimesRequest, userID uint) (*overtime.ListOvertimesResponse, error)
 
 		GetTotalHoursByUserAndDate(ctx context.Context, userID uint, date time.Time) (float64, error)
 	}
@@ -52,17 +52,12 @@ func (r *OvertimeRepository) Delete(ctx context.Context, id uint) error {
 	return r.db.WithContext(ctx).Delete(&overtime.Overtime{}, id).Error
 }
 
-func (r *OvertimeRepository) List(ctx context.Context, req overtime.ListOvertimesRequest) (*overtime.ListOvertimesResponse, error) {
+func (r *OvertimeRepository) List(ctx context.Context, req overtime.ListOvertimesRequest, userID uint) (*overtime.ListOvertimesResponse, error) {
 	var overtimes []overtime.Overtime
 	var total int64
 
 	// Build query
-	query := r.db.WithContext(ctx).Model(&overtime.Overtime{})
-
-	// Apply user filter
-	if req.UserID != nil {
-		query = query.Where("user_id = ?", *req.UserID)
-	}
+	query := r.db.WithContext(ctx).Model(&overtime.Overtime{}).Where("user_id = ?", userID)
 
 	// Apply date range filter
 	if req.StartDate != nil && req.EndDate != nil {

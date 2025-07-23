@@ -49,7 +49,6 @@ func (handler OvertimeHandler) Create(ctx echo.Context) error {
 	}
 
 	handler.logger.InfoT("incoming request", requestID, map[string]interface{}{
-		"user_id":          req.UserID,
 		"overtimes_date":   req.OvertimesDate,
 		"total_hours_time": req.TotalHoursTime,
 	})
@@ -81,7 +80,6 @@ func (handler OvertimeHandler) Create(ctx echo.Context) error {
 	userID := middleware.GetUserID(ctx)
 	handler.logger.InfoT("calling overtime service", requestID, map[string]interface{}{
 		"user_id":          userID,
-		"request_user_id":  req.UserID,
 		"overtimes_date":   req.OvertimesDate,
 		"total_hours_time": req.TotalHoursTime,
 	})
@@ -128,11 +126,14 @@ func (handler OvertimeHandler) GetByID(ctx echo.Context) error {
 		"id": id,
 	})
 
+	// Get user ID from middleware
+	userID := middleware.GetUserID(ctx)
+
 	// Add request ID to context
 	serviceCtx := middleware.AddRequestIDToContext(ctx.Request().Context(), requestID)
 
 	// Call service
-	response, err := handler.overtimeServices.GetByID(serviceCtx, uint(id))
+	response, err := handler.overtimeServices.GetByID(serviceCtx, uint(id), userID)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, entities.ResponseFormater(http.StatusNotFound, map[string]interface{}{
 			"error": err.Error(),
@@ -220,11 +221,14 @@ func (handler OvertimeHandler) Delete(ctx echo.Context) error {
 		"id": id,
 	})
 
+	// Get user ID from middleware
+	userID := middleware.GetUserID(ctx)
+
 	// Add request ID to context
 	serviceCtx := middleware.AddRequestIDToContext(ctx.Request().Context(), requestID)
 
 	// Call service
-	err = handler.overtimeServices.Delete(serviceCtx, uint(id))
+	err = handler.overtimeServices.Delete(serviceCtx, uint(id), userID)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, entities.ResponseFormater(http.StatusBadRequest, map[string]interface{}{
 			"error": err.Error(),
@@ -255,7 +259,10 @@ func (handler OvertimeHandler) List(ctx echo.Context) error {
 		"sort_desc":  sortDesc,
 	})
 
-	// Build request
+	// Get user ID from middleware
+	userID := middleware.GetUserID(ctx)
+
+	// Build request - user can only see their own overtime
 	req := overtime.ListOvertimesRequest{
 		Page:      page,
 		Limit:     limit,
@@ -263,14 +270,6 @@ func (handler OvertimeHandler) List(ctx echo.Context) error {
 		EndDate:   &endDate,
 		SortBy:    sortBy,
 		SortDesc:  sortDesc,
-	}
-
-	// Parse user_id if provided
-	if userIDStr != "" {
-		if userID, err := strconv.ParseUint(userIDStr, 10, 32); err == nil {
-			userIDUint := uint(userID)
-			req.UserID = &userIDUint
-		}
 	}
 
 	// Handle empty date strings
@@ -285,7 +284,7 @@ func (handler OvertimeHandler) List(ctx echo.Context) error {
 	serviceCtx := middleware.AddRequestIDToContext(ctx.Request().Context(), requestID)
 
 	// Call service
-	response, err := handler.overtimeServices.List(serviceCtx, req)
+	response, err := handler.overtimeServices.List(serviceCtx, req, userID)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, entities.ResponseFormater(http.StatusBadRequest, map[string]interface{}{
 			"error": err.Error(),
