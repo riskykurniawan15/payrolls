@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -38,4 +40,25 @@ func RequestIDMiddleware() echo.MiddlewareFunc {
 func GetRequestID(c echo.Context) string {
 	requestID, _ := c.Get(RequestIDKey).(string)
 	return requestID
+}
+
+// GetRequestIDFromContext retrieves the request ID from context.Context
+// This can be used in repository layer
+func GetRequestIDFromContext(ctx context.Context) string {
+	if ctx == nil {
+		return ""
+	}
+
+	// Try to get request ID from context
+	if requestID, ok := ctx.Value(RequestIDKey).(string); ok {
+		return requestID
+	}
+
+	return ""
+}
+
+// AddRequestIDToContext adds request ID to a context.Context
+// This is a helper function to avoid direct access to RequestIDKey
+func AddRequestIDToContext(ctx context.Context, requestID string) context.Context {
+	return context.WithValue(ctx, RequestIDKey, requestID)
 }

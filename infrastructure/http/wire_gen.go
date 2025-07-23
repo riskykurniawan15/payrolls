@@ -18,21 +18,22 @@ import (
 	health2 "github.com/riskykurniawan15/payrolls/services/health"
 	period2 "github.com/riskykurniawan15/payrolls/services/period"
 	user2 "github.com/riskykurniawan15/payrolls/services/user"
+	"github.com/riskykurniawan15/payrolls/utils/logger"
 	"gorm.io/gorm"
 )
 
 // Injectors from dep_manager.go:
 
-func InitializeHandler(db *gorm.DB, cfg config.Config) *Dependencies {
+func InitializeHandler(db *gorm.DB, cfg config.Config, logger2 logger.Logger) *Dependencies {
 	iHealthRepositories := health.NewHealthRepositories(db)
 	iHealthServices := health2.NewHealthService(iHealthRepositories)
 	iHealthHandler := health3.NewHealthHandlers(iHealthServices)
 	iUserRepository := user.NewUserRepository(db)
-	iUserService := user2.NewUserService(cfg, iUserRepository)
-	iUserHandler := user3.NewUserHandlers(iUserService)
+	iUserService := user2.NewUserService(cfg, iUserRepository, logger2)
+	iUserHandler := user3.NewUserHandlers(logger2, iUserService)
 	iPeriodRepository := period.NewPeriodRepository(db)
-	iPeriodService := period2.NewPeriodService(iPeriodRepository)
-	iPeriodHandler := period3.NewPeriodHandlers(iPeriodService)
+	iPeriodService := period2.NewPeriodService(logger2, iPeriodRepository)
+	iPeriodHandler := period3.NewPeriodHandlers(logger2, iPeriodService)
 	dependencies := &Dependencies{
 		HealthHandlers: iHealthHandler,
 		UserHandlers:   iUserHandler,

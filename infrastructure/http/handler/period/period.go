@@ -9,6 +9,7 @@ import (
 	"github.com/riskykurniawan15/payrolls/infrastructure/http/middleware"
 	"github.com/riskykurniawan15/payrolls/models/period"
 	periodServices "github.com/riskykurniawan15/payrolls/services/period"
+	"github.com/riskykurniawan15/payrolls/utils/logger"
 	"github.com/riskykurniawan15/payrolls/utils/validator"
 )
 
@@ -22,28 +23,43 @@ type (
 	}
 
 	PeriodHandler struct {
+		logger         logger.Logger
 		periodServices periodServices.IPeriodService
 	}
 )
 
-func NewPeriodHandlers(periodServices periodServices.IPeriodService) IPeriodHandler {
+func NewPeriodHandlers(logger logger.Logger, periodServices periodServices.IPeriodService) IPeriodHandler {
 	return &PeriodHandler{
+		logger:         logger,
 		periodServices: periodServices,
 	}
 }
 
 func (handler PeriodHandler) Create(ctx echo.Context) error {
 	var req period.CreatePeriodRequest
+	requestID := middleware.GetRequestID(ctx)
 
 	if err := ctx.Bind(&req); err != nil {
+		handler.logger.ErrorT("failed to bind request body", requestID, map[string]interface{}{
+			"error": err.Error(),
+		})
 		return ctx.JSON(http.StatusBadRequest, entities.ResponseFormater(http.StatusBadRequest, map[string]interface{}{
 			"error": "Invalid request body",
 		}))
 	}
 
+	handler.logger.InfoT("incoming request", requestID, map[string]interface{}{
+		"name":       req.Name,
+		"start_date": req.StartDate,
+		"end_date":   req.EndDate,
+	})
+
 	// Validate request
 	if err := ctx.Validate(&req); err != nil {
 		if validationErrors, ok := err.(*validator.ValidationErrors); ok {
+			handler.logger.WarningT("validation failed", requestID, map[string]interface{}{
+				"validation_errors": validationErrors.GetValidationErrors(),
+			})
 			return ctx.JSON(http.StatusBadRequest, entities.Response{
 				Status:  http.StatusBadRequest,
 				Message: "Bad Request",
@@ -53,6 +69,9 @@ func (handler PeriodHandler) Create(ctx echo.Context) error {
 				},
 			})
 		}
+		handler.logger.ErrorT("validation error", requestID, map[string]interface{}{
+			"error": err.Error(),
+		})
 		return ctx.JSON(http.StatusBadRequest, entities.ResponseFormater(http.StatusBadRequest, map[string]interface{}{
 			"error": err.Error(),
 		}))
@@ -60,14 +79,31 @@ func (handler PeriodHandler) Create(ctx echo.Context) error {
 
 	// Get user ID from middleware
 	userID := middleware.GetUserID(ctx)
+	handler.logger.InfoT("calling period service", requestID, map[string]interface{}{
+		"user_id": userID,
+		"name":    req.Name,
+	})
+
+	// Add request ID to context
+	serviceCtx := middleware.AddRequestIDToContext(ctx.Request().Context(), requestID)
 
 	// Call service
-	response, err := handler.periodServices.Create(ctx.Request().Context(), req, userID)
+	response, err := handler.periodServices.Create(serviceCtx, req, userID)
 	if err != nil {
+		handler.logger.ErrorT("service error", requestID, map[string]interface{}{
+			"error":   err.Error(),
+			"user_id": userID,
+		})
 		return ctx.JSON(http.StatusBadRequest, entities.ResponseFormater(http.StatusBadRequest, map[string]interface{}{
 			"error": err.Error(),
 		}))
 	}
+
+	handler.logger.InfoT("period created successfully", requestID, map[string]interface{}{
+		"period_id": response.ID,
+		"code":      response.Code,
+		"name":      response.Name,
+	})
 
 	return ctx.JSON(http.StatusCreated, entities.ResponseFormater(http.StatusCreated, map[string]interface{}{
 		"data": response,
@@ -84,8 +120,16 @@ func (handler PeriodHandler) GetByID(ctx echo.Context) error {
 		}))
 	}
 
+	requestID := middleware.GetRequestID(ctx)
+	handler.logger.InfoT("incoming request", requestID, map[string]interface{}{
+		"id": id,
+	})
+
+	// Add request ID to context
+	serviceCtx := middleware.AddRequestIDToContext(ctx.Request().Context(), requestID)
+
 	// Call service
-	response, err := handler.periodServices.GetByID(ctx.Request().Context(), uint(id))
+	response, err := handler.periodServices.GetByID(serviceCtx, uint(id))
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, entities.ResponseFormater(http.StatusNotFound, map[string]interface{}{
 			"error": err.Error(),
@@ -108,12 +152,20 @@ func (handler PeriodHandler) Update(ctx echo.Context) error {
 	}
 
 	var req period.UpdatePeriodRequest
+	requestID := middleware.GetRequestID(ctx)
 
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, entities.ResponseFormater(http.StatusBadRequest, map[string]interface{}{
 			"error": "Invalid request body",
 		}))
 	}
+
+	handler.logger.InfoT("incoming request", requestID, map[string]interface{}{
+		"id":         id,
+		"name":       req.Name,
+		"start_date": req.StartDate,
+		"end_date":   req.EndDate,
+	})
 
 	// Validate request
 	if err := ctx.Validate(&req); err != nil {
@@ -135,8 +187,11 @@ func (handler PeriodHandler) Update(ctx echo.Context) error {
 	// Get user ID from middleware
 	userID := middleware.GetUserID(ctx)
 
+	// Add request ID to context
+	serviceCtx := middleware.AddRequestIDToContext(ctx.Request().Context(), requestID)
+
 	// Call service
-	response, err := handler.periodServices.Update(ctx.Request().Context(), uint(id), req, userID)
+	response, err := handler.periodServices.Update(serviceCtx, uint(id), req, userID)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, entities.ResponseFormater(http.StatusBadRequest, map[string]interface{}{
 			"error": err.Error(),
@@ -158,8 +213,16 @@ func (handler PeriodHandler) Delete(ctx echo.Context) error {
 		}))
 	}
 
+	requestID := middleware.GetRequestID(ctx)
+	handler.logger.InfoT("incoming request", requestID, map[string]interface{}{
+		"id": id,
+	})
+
+	// Add request ID to context
+	serviceCtx := middleware.AddRequestIDToContext(ctx.Request().Context(), requestID)
+
 	// Call service
-	err = handler.periodServices.Delete(ctx.Request().Context(), uint(id))
+	err = handler.periodServices.Delete(serviceCtx, uint(id))
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, entities.ResponseFormater(http.StatusBadRequest, map[string]interface{}{
 			"error": err.Error(),
@@ -178,6 +241,16 @@ func (handler PeriodHandler) List(ctx echo.Context) error {
 	sortBy := ctx.QueryParam("sort_by")
 	sortDesc := ctx.QueryParam("sort_desc") == "true"
 
+	requestID := middleware.GetRequestID(ctx)
+	handler.logger.InfoT("incoming request", requestID, map[string]interface{}{
+		"page":      page,
+		"limit":     limit,
+		"search":    search,
+		"status":    statusStr,
+		"sort_by":   sortBy,
+		"sort_desc": sortDesc,
+	})
+
 	// Build request
 	req := period.ListPeriodsRequest{
 		Page:     page,
@@ -195,8 +268,11 @@ func (handler PeriodHandler) List(ctx echo.Context) error {
 		}
 	}
 
+	// Add request ID to context
+	serviceCtx := middleware.AddRequestIDToContext(ctx.Request().Context(), requestID)
+
 	// Call service
-	response, err := handler.periodServices.List(ctx.Request().Context(), req)
+	response, err := handler.periodServices.List(serviceCtx, req)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, entities.ResponseFormater(http.StatusBadRequest, map[string]interface{}{
 			"error": err.Error(),

@@ -24,7 +24,7 @@ type App struct {
 
 func Start(app App) {
 	// Initialize HTTP server
-	e := router.Routers(dep.InitializeHandler(app.PostgressDB, app.Config), app.Config.JWT.SecretKey)
+	e := router.Routers(dep.InitializeHandler(app.PostgressDB, app.Config, app.Logger), app.Config.JWT.SecretKey)
 
 	// Start HTTP server in background
 	go func() {

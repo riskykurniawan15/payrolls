@@ -9,6 +9,7 @@ import (
 	healthRepositories "github.com/riskykurniawan15/payrolls/repositories/health"
 	periodRepositories "github.com/riskykurniawan15/payrolls/repositories/period"
 	userRepositories "github.com/riskykurniawan15/payrolls/repositories/user"
+	"github.com/riskykurniawan15/payrolls/utils/logger"
 	"gorm.io/gorm"
 
 	healthServices "github.com/riskykurniawan15/payrolls/services/health"
@@ -26,7 +27,7 @@ type Dependencies struct {
 	PeriodHandlers periodHandlers.IPeriodHandler
 }
 
-func InitializeHandler(db *gorm.DB, cfg config.Config) *Dependencies {
+func InitializeHandler(db *gorm.DB, cfg config.Config, logger logger.Logger) *Dependencies {
 	wire.Build(
 		RepositorySet,
 		ServicesSet,

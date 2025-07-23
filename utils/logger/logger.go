@@ -124,26 +124,26 @@ func (Logs Logger) Fatal(msg string)   { Logs.Log.Fatal(msg) }
 func (Logs Logger) Panic(msg string)   { Logs.Log.Panic(msg) }
 
 // with data
-func (Logs Logger) InfoW(msg string, data interface{})    { Logs.Log.Infow(msg, "data", data) }
-func (Logs Logger) WarningW(msg string, data interface{}) { Logs.Log.Warnw(msg, "data", data) }
-func (Logs Logger) ErrorW(msg string, data interface{})   { Logs.Log.Errorw(msg, "data", data) }
-func (Logs Logger) FatalW(msg string, data interface{})   { Logs.Log.Fatalw(msg, "data", data) }
-func (Logs Logger) PanicW(msg string, data interface{})   { Logs.Log.Panicw(msg, "data", data) }
+func (Logs Logger) InfoW(msg string, data ...any)    { Logs.Log.Infow(msg, "data", data) }
+func (Logs Logger) WarningW(msg string, data ...any) { Logs.Log.Warnw(msg, "data", data) }
+func (Logs Logger) ErrorW(msg string, data ...any)   { Logs.Log.Errorw(msg, "data", data) }
+func (Logs Logger) FatalW(msg string, data ...any)   { Logs.Log.Fatalw(msg, "data", data) }
+func (Logs Logger) PanicW(msg string, data ...any)   { Logs.Log.Panicw(msg, "data", data) }
 
 // with data and request id
-func (Logs Logger) InfoT(msg, requestID string, data interface{}) {
+func (Logs Logger) InfoT(msg, requestID string, data ...any) {
 	Logs.Log.Infow(msg, "request-id", requestID, "data", data)
 }
-func (Logs Logger) WarningT(msg, requestID string, data interface{}) {
+func (Logs Logger) WarningT(msg, requestID string, data ...any) {
 	Logs.Log.Warnw(msg, "request-id", requestID, "data", data)
 }
-func (Logs Logger) ErrorT(msg, requestID string, data interface{}) {
+func (Logs Logger) ErrorT(msg, requestID string, data ...any) {
 	Logs.Log.Errorw(msg, "request-id", requestID, "data", data)
 }
-func (Logs Logger) FatalT(msg, requestID string, data interface{}) {
+func (Logs Logger) FatalT(msg, requestID string, data ...any) {
 	Logs.Log.Fatalw(msg, "request-id", requestID, "data", data)
 }
-func (Logs Logger) PanicT(msg, requestID string, data interface{}) {
+func (Logs Logger) PanicT(msg, requestID string, data ...any) {
 	Logs.Log.Panicw(msg, "request-id", requestID, "data", data)
 }
 
