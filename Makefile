@@ -5,15 +5,16 @@ ifneq (,$(wildcard .env))
 endif
 
 # Database configuration with fallback to defaults
-DB_HOST ?= localhost
+DB_SERVER ?= localhost
 DB_PORT ?= 5432
 DB_USER ?= root
-DB_PASS ?= kurniawan
-DB_NAME ?= payrolls
-DB_SSL ?= disable
+DB_PASS ?= 
+DB_NAME ?= public
+DB_SSL_MODE ?= false
+DB_TIME_ZONE ?= Asia/Jakarta
 
 # Construct database URL
-DATABASE_URL = postgres://$(DB_USER):$(DB_PASS)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSL)
+DATABASE_URL = postgres://$(DB_USER):$(DB_PASS)@$(DB_SERVER):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSL_MODE)&timezone=$(DB_TIME_ZONE)
 
 # Run the application
 run:
@@ -107,11 +108,12 @@ seed-users:
 # Show database configuration
 db-config:
 	@echo "Database Configuration:"
-	@echo "  Host: $(DB_HOST)"
+	@echo "  Server: $(DB_SERVER)"
 	@echo "  Port: $(DB_PORT)"
 	@echo "  User: $(DB_USER)"
 	@echo "  Database: $(DB_NAME)"
-	@echo "  SSL Mode: $(DB_SSL)"
+	@echo "  SSL Mode: $(DB_SSL_MODE)"
+	@echo "  Timezone: $(DB_TIME_ZONE)"
 	@echo "  Full URL: $(DATABASE_URL)"
 	@if exist .env (echo "  .env file: Found") else (echo "  .env file: Not found (using defaults)")
 
