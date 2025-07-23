@@ -51,6 +51,7 @@ func NewCustomValidator() *CustomValidator {
 }
 
 // Validate validates the struct and returns validation errors
+// This implements Echo's Validator interface
 func (cv *CustomValidator) Validate(i interface{}) error {
 	if err := cv.validator.Struct(i); err != nil {
 		var errors []ValidationError

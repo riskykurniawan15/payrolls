@@ -22,8 +22,8 @@ func ConnectDB(cfg config.PostgressDB) *gorm.DB {
 
 	// Determine SSL mode string
 	sslMode := "disable"
-	if cfg.SSLMode {
-		sslMode = "require"
+	if cfg.SSLMode != "" {
+		sslMode = cfg.SSLMode
 	}
 
 	db, err := gorm.Open(postgres.New(postgres.Config{

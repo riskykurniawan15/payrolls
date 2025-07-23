@@ -4,8 +4,8 @@ import "time"
 
 type (
 	LoginRequest struct {
-		Username string `json:"username" validate:"required,min=3,max=50"`
-		Password string `json:"password" validate:"required,min=6"`
+		Username string `json:"username" validate:"required"`
+		Password string `json:"password" validate:"required"`
 	}
 
 	LoginResponse struct {

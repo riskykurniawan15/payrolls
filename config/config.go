@@ -31,7 +31,7 @@ type (
 		DBMaxOpenCon  int
 		DBMaxLifeTime int
 		DBTimeZone    string
-		SSLMode       bool
+		SSLMode       string
 		DBDebug       bool
 	}
 
@@ -94,7 +94,7 @@ func loadDBServer() PostgressDB {
 		DBMaxOpenCon:  env.GetEnv("DB_MAX_OPEN_CON", 100),
 		DBMaxLifeTime: env.GetEnv("DB_MAX_LIFE_TIME", 10),
 		DBTimeZone:    env.GetEnv("DB_TIMEZONE", "Asia/Jakarta"),
-		SSLMode:       env.GetEnv("DB_SSL_MODE", false),
+		SSLMode:       env.GetEnv("DB_SSL_MODE", "disable"),
 		DBDebug:       env.GetEnv("DB_DEBUG", false),
 	}
 }

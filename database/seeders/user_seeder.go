@@ -49,12 +49,11 @@ func (s *UserSeeder) createAdminUser() error {
 	}
 
 	adminUser := User{
-		ID:        defaultCreatedBy,
 		Username:  "admin",
 		Password:  string(hashedPassword),
 		Roles:     constant.AdminRole,
 		Salary:    0,
-		CreatedBy: defaultCreatedBy, // Self-reference for admin
+		CreatedBy: defaultCreatedBy, // Will be updated after admin is created
 		CreatedAt: time.Now(),
 	}
 
@@ -66,7 +65,12 @@ func (s *UserSeeder) createAdminUser() error {
 		if err := s.db.Create(&adminUser).Error; err != nil {
 			return err
 		}
-		log.Printf("Created admin user: %s", adminUser.Username)
+		log.Printf("Created admin user: %s (ID: %d)", adminUser.Username, adminUser.ID)
+
+		// Update admin's created_by to reference itself
+		if err := s.db.Model(&User{}).Where("id = ?", adminUser.ID).Update("created_by", adminUser.ID).Error; err != nil {
+			return err
+		}
 	} else {
 		log.Printf("Admin user already exists: %s", adminUser.Username)
 	}
@@ -79,6 +83,13 @@ func (s *UserSeeder) createEmployeeUsers() error {
 
 	// Set random seed
 	rand.Seed(time.Now().UnixNano())
+
+	// Get admin user ID for created_by reference
+	var adminUser User
+	if err := s.db.Where("username = ?", "admin").First(&adminUser).Error; err != nil {
+		log.Printf("Warning: Admin user not found, using default created_by: %d", defaultCreatedBy)
+		adminUser.ID = defaultCreatedBy
+	}
 
 	// Salary ranges for employees
 	salaryRanges := []struct {
@@ -118,7 +129,7 @@ func (s *UserSeeder) createEmployeeUsers() error {
 			Password:  string(hashedPassword),
 			Roles:     constant.EmployeeRole,
 			Salary:    salary,
-			CreatedBy: defaultCreatedBy,
+			CreatedBy: adminUser.ID,
 			CreatedAt: time.Now(),
 		}
 
