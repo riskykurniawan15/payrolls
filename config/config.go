@@ -32,6 +32,7 @@ type (
 		DBMaxLifeTime int
 		DBTimeZone    string
 		SSLMode       bool
+		DBDebug       bool
 	}
 
 	JWTConfig struct {
@@ -94,6 +95,7 @@ func loadDBServer() PostgressDB {
 		DBMaxLifeTime: env.GetEnv("DB_MAX_LIFE_TIME", 10),
 		DBTimeZone:    env.GetEnv("DB_TIMEZONE", "Asia/Jakarta"),
 		SSLMode:       env.GetEnv("DB_SSL_MODE", false),
+		DBDebug:       env.GetEnv("DB_DEBUG", false),
 	}
 }
 

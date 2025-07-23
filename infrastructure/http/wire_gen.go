@@ -8,20 +8,28 @@ package http
 
 import (
 	"github.com/google/wire"
+	"github.com/riskykurniawan15/payrolls/config"
 	health3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/health"
+	user3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/user"
 	"github.com/riskykurniawan15/payrolls/repositories/health"
+	"github.com/riskykurniawan15/payrolls/repositories/user"
 	health2 "github.com/riskykurniawan15/payrolls/services/health"
+	user2 "github.com/riskykurniawan15/payrolls/services/user"
 	"gorm.io/gorm"
 )
 
 // Injectors from dep_manager.go:
 
-func InitializeHandler(db *gorm.DB) *Dependencies {
+func InitializeHandler(db *gorm.DB, cfg config.Config) *Dependencies {
 	iHealthRepositories := health.NewHealthRepositories(db)
 	iHealthServices := health2.NewHealthService(iHealthRepositories)
 	iHealthHandler := health3.NewHealthHandlers(iHealthServices)
+	iUserRepository := user.NewUserRepository(db)
+	iUserService := user2.NewUserService(cfg, iUserRepository)
+	iUserHandler := user3.NewUserHandlers(iUserService)
 	dependencies := &Dependencies{
 		HealthHandlers: iHealthHandler,
+		UserHandlers:   iUserHandler,
 	}
 	return dependencies
 }
@@ -30,10 +38,11 @@ func InitializeHandler(db *gorm.DB) *Dependencies {
 
 type Dependencies struct {
 	HealthHandlers health3.IHealthHandler
+	UserHandlers   user3.IUserHandler
 }
 
-var RepositorySet = wire.NewSet(health.NewHealthRepositories)
+var RepositorySet = wire.NewSet(health.NewHealthRepositories, user.NewUserRepository)
 
-var ServicesSet = wire.NewSet(health2.NewHealthService)
+var ServicesSet = wire.NewSet(health2.NewHealthService, user2.NewUserService)
 
-var HandlerSet = wire.NewSet(health3.NewHealthHandlers)
+var HandlerSet = wire.NewSet(health3.NewHealthHandlers, user3.NewUserHandlers)

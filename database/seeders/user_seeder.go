@@ -48,13 +48,13 @@ func (s *UserSeeder) createAdminUser() error {
 	}
 
 	adminUser := User{
+		ID:        defaultCreatedBy,
 		Username:  "admin",
 		Password:  string(hashedPassword),
 		Roles:     "admin",
 		Salary:    0,
-		CreatedBy: 1, // Self-reference for admin
+		CreatedBy: defaultCreatedBy, // Self-reference for admin
 		CreatedAt: time.Now(),
-		// UpdatedAt: time.Now(), // Leave empty for new records
 	}
 
 	// Check if admin already exists
@@ -117,7 +117,7 @@ func (s *UserSeeder) createEmployeeUsers() error {
 			Password:  string(hashedPassword),
 			Roles:     "employee",
 			Salary:    salary,
-			CreatedBy: 1,
+			CreatedBy: defaultCreatedBy,
 			CreatedAt: time.Now(),
 		}
 

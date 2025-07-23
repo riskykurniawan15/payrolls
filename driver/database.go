@@ -43,6 +43,10 @@ func ConnectDB(cfg config.PostgressDB) *gorm.DB {
 		panic("Failed to Connect Postgress")
 	}
 
+	if cfg.DBDebug {
+		db = db.Debug()
+	}
+
 	// Configure connection pool
 	sqlDB, err := db.DB()
 	if err != nil {
