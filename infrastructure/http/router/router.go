@@ -37,5 +37,15 @@ func Routers(dep *dep.Dependencies, jwtSecret string) *echo.Echo {
 		periods.DELETE("/:id", dep.PeriodHandlers.Delete)
 	}
 
+	// Attendance routes (for all authenticated users)
+	attendances := engine.Group("/attendances", middleware.JWTMiddleware(jwtConfig), middleware.EmployeeOnlyMiddleware())
+	{
+		attendances.GET("", dep.AttendanceHandlers.GetAttendances)
+		attendances.GET("/:id", dep.AttendanceHandlers.GetAttendanceByID)
+		attendances.POST("/check-in", dep.AttendanceHandlers.CheckIn)
+		attendances.POST("/check-out", dep.AttendanceHandlers.CheckOut)
+		attendances.POST("/check-out/:id", dep.AttendanceHandlers.CheckOutByID)
+	}
+
 	return engine
 }

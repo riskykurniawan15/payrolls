@@ -280,6 +280,7 @@ func (handler PeriodHandler) List(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, entities.ResponseFormater(http.StatusOK, map[string]interface{}{
-		"data": response,
+		"data": response.Data,
+		"meta": response.Pagination,
 	}))
 }

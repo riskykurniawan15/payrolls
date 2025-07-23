@@ -9,12 +9,15 @@ package http
 import (
 	"github.com/google/wire"
 	"github.com/riskykurniawan15/payrolls/config"
+	attendance3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/attendance"
 	health3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/health"
 	period3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/period"
 	user3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/user"
+	"github.com/riskykurniawan15/payrolls/repositories/attendance"
 	"github.com/riskykurniawan15/payrolls/repositories/health"
 	"github.com/riskykurniawan15/payrolls/repositories/period"
 	"github.com/riskykurniawan15/payrolls/repositories/user"
+	attendance2 "github.com/riskykurniawan15/payrolls/services/attendance"
 	health2 "github.com/riskykurniawan15/payrolls/services/health"
 	period2 "github.com/riskykurniawan15/payrolls/services/period"
 	user2 "github.com/riskykurniawan15/payrolls/services/user"
@@ -34,10 +37,14 @@ func InitializeHandler(db *gorm.DB, cfg config.Config, logger2 logger.Logger) *D
 	iPeriodRepository := period.NewPeriodRepository(db)
 	iPeriodService := period2.NewPeriodService(logger2, iPeriodRepository)
 	iPeriodHandler := period3.NewPeriodHandlers(logger2, iPeriodService)
+	iAttendanceRepository := attendance.NewAttendanceRepository(db)
+	iAttendanceService := attendance2.NewAttendanceService(logger2, iAttendanceRepository)
+	iAttendanceHandler := attendance3.NewAttendanceHandlers(logger2, iAttendanceService)
 	dependencies := &Dependencies{
-		HealthHandlers: iHealthHandler,
-		UserHandlers:   iUserHandler,
-		PeriodHandlers: iPeriodHandler,
+		HealthHandlers:     iHealthHandler,
+		UserHandlers:       iUserHandler,
+		PeriodHandlers:     iPeriodHandler,
+		AttendanceHandlers: iAttendanceHandler,
 	}
 	return dependencies
 }
@@ -45,13 +52,14 @@ func InitializeHandler(db *gorm.DB, cfg config.Config, logger2 logger.Logger) *D
 // dep_manager.go:
 
 type Dependencies struct {
-	HealthHandlers health3.IHealthHandler
-	UserHandlers   user3.IUserHandler
-	PeriodHandlers period3.IPeriodHandler
+	HealthHandlers     health3.IHealthHandler
+	UserHandlers       user3.IUserHandler
+	PeriodHandlers     period3.IPeriodHandler
+	AttendanceHandlers attendance3.IAttendanceHandler
 }
 
-var RepositorySet = wire.NewSet(health.NewHealthRepositories, user.NewUserRepository, period.NewPeriodRepository)
+var RepositorySet = wire.NewSet(health.NewHealthRepositories, user.NewUserRepository, period.NewPeriodRepository, attendance.NewAttendanceRepository)
 
-var ServicesSet = wire.NewSet(health2.NewHealthService, user2.NewUserService, period2.NewPeriodService)
+var ServicesSet = wire.NewSet(health2.NewHealthService, user2.NewUserService, period2.NewPeriodService, attendance2.NewAttendanceService)
 
-var HandlerSet = wire.NewSet(health3.NewHealthHandlers, user3.NewUserHandlers, period3.NewPeriodHandlers)
+var HandlerSet = wire.NewSet(health3.NewHealthHandlers, user3.NewUserHandlers, period3.NewPeriodHandlers, attendance3.NewAttendanceHandlers)
