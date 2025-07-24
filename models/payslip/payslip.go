@@ -83,4 +83,22 @@ type (
 		Total      int `json:"total"`
 		TotalPages int `json:"total_pages"`
 	}
+
+	// PayslipSummaryData for HTML template
+	PayslipSummaryData struct {
+		CompanyName      string                   `json:"company_name"`
+		PeriodName       string                   `json:"period_name"`
+		TotalEmployees   int                      `json:"total_employees"`
+		TotalWorkingDays int                      `json:"total_working_days"`
+		TotalTakeHomePay float64                  `json:"total_take_home_pay"`
+		EmployeeList     []PayslipSummaryEmployee `json:"employee_list"`
+		GeneratedAt      time.Time                `json:"generated_at"`
+	}
+
+	// PayslipSummaryEmployee for summary
+	PayslipSummaryEmployee struct {
+		No           int     `json:"no"`
+		EmployeeName string  `json:"employee_name"`
+		TakeHomePay  float64 `json:"take_home_pay"`
+	}
 )

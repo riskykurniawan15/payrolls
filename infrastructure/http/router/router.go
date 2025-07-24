@@ -80,5 +80,12 @@ func Routers(dep *dep.Dependencies, jwtSecret string) *echo.Echo {
 	}
 	engine.GET("/payslip/print", dep.PayslipHandlers.Print)
 
+	// Payslip summary routes (admin only)
+	payslipSummary := engine.Group("/payslip/summary", middleware.JWTMiddleware(jwtConfig), middleware.AdminOnlyMiddleware())
+	{
+		payslipSummary.GET("/generate/:id", dep.PayslipHandlers.GenerateSummary)
+	}
+	engine.GET("/payslip/summary/print", dep.PayslipHandlers.PrintSummary)
+
 	return engine
 }

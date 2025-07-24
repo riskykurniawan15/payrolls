@@ -22,6 +22,8 @@ type (
 		List(ctx context.Context, req payslip.PayslipListRequest, userID uint) (*payslip.PayslipListResponse, error)
 		GeneratePayslip(ctx context.Context, periodDetailID, userID uint, host string) (*payslip.GeneratePayslipResponse, error)
 		GetPayslipData(ctx context.Context, token string) (*payslip.PayslipData, error)
+		GeneratePayslipSummary(ctx context.Context, periodID uint, host string) (*payslip.GeneratePayslipResponse, error)
+		GetPayslipSummaryData(ctx context.Context, token string) (*payslip.PayslipSummaryData, error)
 	}
 
 	PayslipService struct {
@@ -35,6 +37,12 @@ type (
 		PeriodDetailID uint      `json:"period_detail_id"`
 		UserID         uint      `json:"user_id"`
 		ExpiresAt      time.Time `json:"expires_at"`
+	}
+
+	// SummaryTokenData for encrypted summary token
+	SummaryTokenData struct {
+		PeriodID  uint      `json:"period_id"`
+		ExpiresAt time.Time `json:"expires_at"`
 	}
 )
 
@@ -158,9 +166,90 @@ func (s *PayslipService) GetPayslipData(ctx context.Context, token string) (*pay
 		"user_id":          tokenData.UserID,
 	})
 
-	payslipData.CompanyName = s.config.CompanyName
-
 	return payslipData, nil
+}
+
+func (s *PayslipService) GeneratePayslipSummary(ctx context.Context, periodID uint, host string) (*payslip.GeneratePayslipResponse, error) {
+	requestID := middleware.GetRequestIDFromContext(ctx)
+	s.logger.InfoT("processing generate payslip summary request", requestID, map[string]interface{}{
+		"period_id": periodID,
+	})
+
+	// Verify that the period exists and get summary data
+	_, err := s.periodDetailRepo.GetPayslipSummaryData(ctx, periodID)
+	if err != nil {
+		s.logger.ErrorT("failed to get payslip summary data", requestID, map[string]interface{}{
+			"error":     err.Error(),
+			"period_id": periodID,
+		})
+		return nil, fmt.Errorf("failed to get payslip summary data: %w", err)
+	}
+
+	// Generate token
+	token, expiresAt, err := s.generateSummaryToken(periodID)
+	if err != nil {
+		s.logger.ErrorT("failed to generate summary token", requestID, map[string]interface{}{
+			"error":     err.Error(),
+			"period_id": periodID,
+		})
+		return nil, fmt.Errorf("failed to generate token: %w", err)
+	}
+
+	// Generate print URL
+	printURL := fmt.Sprintf("%s/payslip/summary/print?token=%s", host, token)
+
+	s.logger.InfoT("payslip summary generated successfully", requestID, map[string]interface{}{
+		"period_id":  periodID,
+		"expires_at": expiresAt,
+	})
+
+	return &payslip.GeneratePayslipResponse{
+		PrintURL:  printURL,
+		Token:     token,
+		ExpiresAt: expiresAt,
+	}, nil
+}
+
+func (s *PayslipService) GetPayslipSummaryData(ctx context.Context, token string) (*payslip.PayslipSummaryData, error) {
+	requestID := middleware.GetRequestIDFromContext(ctx)
+	s.logger.InfoT("processing get payslip summary data request", requestID, map[string]interface{}{
+		"token": token,
+	})
+
+	// Decrypt and validate token
+	tokenData, err := s.decryptSummaryToken(token)
+	if err != nil {
+		s.logger.ErrorT("failed to decrypt summary token", requestID, map[string]interface{}{
+			"error": err.Error(),
+		})
+		return nil, fmt.Errorf("invalid token: %w", err)
+	}
+
+	// Check if token is expired
+	if time.Now().After(tokenData.ExpiresAt) {
+		s.logger.WarningT("summary token expired", requestID, map[string]interface{}{
+			"expires_at": tokenData.ExpiresAt,
+		})
+		return nil, fmt.Errorf("token expired")
+	}
+
+	// Get payslip summary data
+	payslipSummaryData, err := s.periodDetailRepo.GetPayslipSummaryData(ctx, tokenData.PeriodID)
+	if err != nil {
+		s.logger.ErrorT("failed to get payslip summary data", requestID, map[string]interface{}{
+			"error":     err.Error(),
+			"period_id": tokenData.PeriodID,
+		})
+		return nil, fmt.Errorf("failed to get payslip summary data: %w", err)
+	}
+
+	s.logger.InfoT("payslip summary data retrieved successfully", requestID, map[string]interface{}{
+		"period_id": tokenData.PeriodID,
+	})
+
+	payslipSummaryData.CompanyName = s.config.CompanyName
+
+	return payslipSummaryData, nil
 }
 
 func (s *PayslipService) generateToken(periodDetailID, userID uint) (string, time.Time, error) {
@@ -207,6 +296,56 @@ func (s *PayslipService) decryptToken(token string) (*TokenData, error) {
 
 	// Parse JSON
 	var tokenData TokenData
+	if err := json.Unmarshal(decryptedData, &tokenData); err != nil {
+		return nil, fmt.Errorf("invalid token data: %w", err)
+	}
+
+	return &tokenData, nil
+}
+
+func (s *PayslipService) generateSummaryToken(periodID uint) (string, time.Time, error) {
+	// Set expiration time (5 minutes from now)
+	expiresAt := time.Now().Add(5 * time.Minute)
+
+	// Create token data
+	tokenData := SummaryTokenData{
+		PeriodID:  periodID,
+		ExpiresAt: expiresAt,
+	}
+
+	// Convert to JSON
+	jsonData, err := json.Marshal(tokenData)
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("failed to marshal token data: %w", err)
+	}
+
+	// Encrypt the data
+	encryptedData, err := s.encrypt(jsonData)
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("failed to encrypt token: %w", err)
+	}
+
+	// Encode to base64
+	token := base64.URLEncoding.EncodeToString(encryptedData)
+
+	return token, expiresAt, nil
+}
+
+func (s *PayslipService) decryptSummaryToken(token string) (*SummaryTokenData, error) {
+	// Decode from base64
+	encryptedData, err := base64.URLEncoding.DecodeString(token)
+	if err != nil {
+		return nil, fmt.Errorf("invalid token format: %w", err)
+	}
+
+	// Decrypt the data
+	decryptedData, err := s.decrypt(encryptedData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt token: %w", err)
+	}
+
+	// Parse JSON
+	var tokenData SummaryTokenData
 	if err := json.Unmarshal(decryptedData, &tokenData); err != nil {
 		return nil, fmt.Errorf("invalid token data: %w", err)
 	}

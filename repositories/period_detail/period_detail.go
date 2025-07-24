@@ -26,6 +26,7 @@ type (
 		CreateBatch(ctx context.Context, periodDetails []period_detail.PeriodDetail) error
 		ListPayslip(ctx context.Context, req payslip.PayslipListRequest, userID uint) (*payslip.PayslipListResponse, error)
 		GetPayslipData(ctx context.Context, periodDetailID, userID uint) (*payslip.PayslipData, error)
+		GetPayslipSummaryData(ctx context.Context, periodID uint) (*payslip.PayslipSummaryData, error)
 	}
 
 	PeriodDetailRepository struct {
@@ -238,5 +239,69 @@ func (repo PeriodDetailRepository) GetPayslipData(ctx context.Context, periodDet
 		TotalReimbursement: periodDetail.AmountReimbursement,
 		TakeHomePay:        periodDetail.TakeHomePay,
 		GeneratedAt:        time.Now(),
+	}, nil
+}
+
+func (repo PeriodDetailRepository) GetPayslipSummaryData(ctx context.Context, periodID uint) (*payslip.PayslipSummaryData, error) {
+	// Get period information
+	period, err := repo.periodRepo.GetByID(ctx, periodID)
+	if err != nil {
+		return nil, fmt.Errorf("period not found: %w", err)
+	}
+
+	// Get all period details for this period
+	query := repo.getInstanceDB(ctx).WithContext(ctx).
+		Table("period_details").
+		Select(`
+			period_details.id,
+			period_details.user_id,
+			period_details.total_working,
+			period_details.take_home_pay,
+			users.username as employee_name
+		`).
+		Joins("JOIN users ON period_details.user_id = users.id").
+		Where("period_details.periods_id = ?", periodID).
+		Order("users.username ASC")
+
+	var results []struct {
+		ID           uint    `json:"id"`
+		UserID       uint    `json:"user_id"`
+		TotalWorking int     `json:"total_working"`
+		TakeHomePay  float64 `json:"take_home_pay"`
+		EmployeeName string  `json:"employee_name"`
+	}
+
+	if err := query.Find(&results).Error; err != nil {
+		return nil, fmt.Errorf("failed to get period details: %w", err)
+	}
+
+	// Calculate summary data
+	totalEmployees := len(results)
+	totalTakeHomePay := float64(0)
+	var employeeList []payslip.PayslipSummaryEmployee
+
+	for i, result := range results {
+		totalTakeHomePay += result.TakeHomePay
+		employeeList = append(employeeList, payslip.PayslipSummaryEmployee{
+			No:           i + 1,
+			EmployeeName: result.EmployeeName,
+			TakeHomePay:  result.TakeHomePay,
+		})
+	}
+
+	// Calculate average working days (assuming all employees have same working days)
+	totalWorkingDays := 0
+	if totalEmployees > 0 {
+		totalWorkingDays = results[0].TotalWorking
+	}
+
+	return &payslip.PayslipSummaryData{
+		CompanyName:      "Company Name",
+		PeriodName:       period.Name,
+		TotalEmployees:   totalEmployees,
+		TotalWorkingDays: totalWorkingDays,
+		TotalTakeHomePay: totalTakeHomePay,
+		EmployeeList:     employeeList,
+		GeneratedAt:      time.Now(),
 	}, nil
 }

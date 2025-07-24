@@ -20,6 +20,8 @@ type (
 		List(ctx echo.Context) error
 		Generate(ctx echo.Context) error
 		Print(ctx echo.Context) error
+		GenerateSummary(ctx echo.Context) error
+		PrintSummary(ctx echo.Context) error
 	}
 
 	PayslipHandler struct {
@@ -214,6 +216,239 @@ func (handler PayslipHandler) Print(ctx echo.Context) error {
 	return ctx.HTML(http.StatusOK, html)
 }
 
+func (handler PayslipHandler) GenerateSummary(ctx echo.Context) error {
+	requestID := middleware.GetRequestID(ctx)
+
+	// Get period ID from URL parameter
+	periodIDStr := ctx.Param("id")
+	periodID, err := strconv.ParseUint(periodIDStr, 10, 32)
+	if err != nil {
+		handler.logger.ErrorT("invalid period ID", requestID, map[string]interface{}{
+			"period_id": periodIDStr,
+			"error":     err.Error(),
+		})
+		return ctx.JSON(http.StatusBadRequest, entities.ResponseFormater(http.StatusBadRequest, map[string]interface{}{
+			"error": "Invalid period ID",
+		}))
+	}
+
+	handler.logger.InfoT("incoming payslip summary generate request", requestID, map[string]interface{}{
+		"period_id": periodID,
+	})
+
+	// Get host from request
+	host := ctx.Scheme() + "://" + ctx.Request().Host
+
+	// Add request ID to context
+	serviceCtx := middleware.AddRequestIDToContext(ctx.Request().Context(), requestID)
+
+	// Call service
+	response, err := handler.payslipServices.GeneratePayslipSummary(serviceCtx, uint(periodID), host)
+	if err != nil {
+		handler.logger.ErrorT("service error", requestID, map[string]interface{}{
+			"period_id": periodID,
+			"error":     err.Error(),
+		})
+		return ctx.JSON(http.StatusInternalServerError, entities.ResponseFormater(http.StatusInternalServerError, map[string]interface{}{
+			"error": err.Error(),
+		}))
+	}
+
+	handler.logger.InfoT("payslip summary generated successfully", requestID, map[string]interface{}{
+		"period_id": periodID,
+		"print_url": response.PrintURL,
+	})
+
+	return ctx.JSON(http.StatusOK, entities.ResponseFormater(http.StatusOK, map[string]interface{}{
+		"data": response,
+	}))
+}
+
+func (handler PayslipHandler) PrintSummary(ctx echo.Context) error {
+	requestID := middleware.GetRequestID(ctx)
+
+	// Get token from query parameter
+	token := ctx.QueryParam("token")
+	if token == "" {
+		handler.logger.ErrorT("missing token", requestID, map[string]interface{}{
+			"error": "Token is required",
+		})
+		return ctx.JSON(http.StatusBadRequest, entities.ResponseFormater(http.StatusBadRequest, map[string]interface{}{
+			"error": "Token is required",
+		}))
+	}
+
+	handler.logger.InfoT("incoming payslip summary print request", requestID, map[string]interface{}{
+		"token": token,
+	})
+
+	// Add request ID to context
+	serviceCtx := middleware.AddRequestIDToContext(ctx.Request().Context(), requestID)
+
+	// Call service
+	data, err := handler.payslipServices.GetPayslipSummaryData(serviceCtx, token)
+	if err != nil {
+		handler.logger.ErrorT("service error", requestID, map[string]interface{}{
+			"error": err.Error(),
+		})
+		return ctx.JSON(http.StatusInternalServerError, entities.ResponseFormater(http.StatusInternalServerError, map[string]interface{}{
+			"error": err.Error(),
+		}))
+	}
+
+	// Generate HTML
+	html, err := handler.generatePayslipSummaryHTML(data)
+	if err != nil {
+		handler.logger.ErrorT("failed to generate HTML", requestID, map[string]interface{}{
+			"error": err.Error(),
+		})
+		return ctx.JSON(http.StatusInternalServerError, entities.ResponseFormater(http.StatusInternalServerError, map[string]interface{}{
+			"error": "Failed to generate payslip",
+		}))
+	}
+
+	handler.logger.InfoT("payslip summary printed successfully", requestID, map[string]interface{}{
+		"period_name": data.PeriodName,
+	})
+
+	return ctx.HTML(http.StatusOK, html)
+}
+
+func (handler PayslipHandler) generatePayslipSummaryHTML(data *payslip.PayslipSummaryData) (string, error) {
+	htmlTemplate := `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Management Payslip Summary</title>
+  <style>
+    @media print {
+      body {
+        margin: 0;
+        -webkit-print-color-adjust: exact;
+      }
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      background-color: #f0f0f0;
+      padding: 8px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+
+    .right {
+      text-align: right;
+    }
+
+    .total-row {
+      font-weight: bold;
+      background-color: #f9f9f9;
+    }
+
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+    }
+  </style>
+</head>
+<body onload="window.print()">
+
+  <h1>{{.CompanyName}}</h1>
+  <h2>Management Payslip Summary</h2>
+
+  <p><strong>Period:</strong> {{.PeriodName}}</p>
+
+  <div class="section-title">Summary</div>
+  <table>
+    <tr>
+      <th>Description</th>
+      <th class="right">Amount</th>
+    </tr>
+    <tr>
+      <td>Total Employees</td>
+      <td class="right">{{.TotalEmployees}}</td>
+    </tr>
+    <tr>
+      <td>Total Working Days</td>
+      <td class="right">{{.TotalWorkingDays}}</td>
+    </tr>
+    <tr class="total-row">
+      <td>Total Take Home Pay</td>
+      <td class="right">{{formatRupiah .TotalTakeHomePay}}</td>
+    </tr>
+  </table>
+
+  <div class="section-title">Employee Take Home Pay List</div>
+  <table>
+    <tr>
+      <th>No</th>
+      <th>Employee Name</th>
+      <th class="right">THP</th>
+    </tr>
+    {{range .EmployeeList}}
+    <tr>
+      <td>{{.No}}</td>
+      <td>{{.EmployeeName}}</td>
+      <td class="right">{{formatRupiah .TakeHomePay}}</td>
+    </tr>
+    {{end}}
+    <tr class="total-row">
+      <td colspan="2">Total</td>
+      <td class="right">{{formatRupiah .TotalTakeHomePay}}</td>
+    </tr>
+  </table>
+
+  <div class="footer">
+    This report was generated automatically and does not require a signature.
+  </div>
+
+</body>
+</html>`
+
+	// Create template with custom function
+	funcMap := template.FuncMap{
+		"formatRupiah": handler.formatRupiah,
+	}
+
+	tmpl, err := template.New("payslip_summary").Funcs(funcMap).Parse(htmlTemplate)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse template: %w", err)
+	}
+
+	// Execute template
+	var result strings.Builder
+	if err := tmpl.Execute(&result, data); err != nil {
+		return "", fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	return result.String(), nil
+}
+
 func (handler PayslipHandler) formatRupiah(amount float64) string {
 	// Convert to integer (in rupiah)
 	rupiah := int64(amount)
@@ -262,7 +497,6 @@ func (handler PayslipHandler) generatePayslipHTML(data *payslip.PayslipData) (st
       max-width: 800px;
       margin: 40px auto;
       padding: 20px;
-      border: 1px solid #333;
     }
 
     h1, h2 {
