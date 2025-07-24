@@ -58,6 +58,9 @@ DB_MAX_OPEN_CON=100
 DB_MAX_LIFE_TIME=10
 DB_DEBUG=false
 
+# HASH
+HASHING_COST=10
+
 # JWT Configuration
 JWT_SECRET_KEY=your_secret_key_here
 JWT_EXPIRED=24
@@ -234,10 +237,41 @@ payrolls/
 │       └── router/       # Route definitions
 ├── mocks/                # Mock files untuk testing
 ├── models/               # Data models
+│   ├── audit_trail/     # Audit trail models
+│   ├── attendance/      # Attendance models
+│   ├── health/          # Health check models
+│   ├── overtime/        # Overtime models
+│   ├── payslip/         # Payslip models
+│   ├── period/          # Period models
+│   ├── period_detail/   # Period detail models
+│   ├── reimbursement/   # Reimbursement models
+│   └── user/            # User models
 ├── repositories/         # Data access layer
+│   ├── audit_trail/     # Audit trail repository
+│   ├── attendance/      # Attendance repository
+│   ├── health/          # Health check repository
+│   ├── instance/        # Database instance
+│   ├── overtime/        # Overtime repository
+│   ├── period/          # Period repository
+│   ├── period_detail/   # Period detail repository
+│   ├── reimbursement/   # Reimbursement repository
+│   └── user/            # User repository
 ├── services/             # Business logic layer
+│   ├── audit_trail/     # Audit trail service
+│   ├── attendance/      # Attendance service
+│   ├── health/          # Health check service
+│   ├── overtime/        # Overtime service
+│   ├── payslip/         # Payslip service
+│   ├── period/          # Period service
+│   ├── period_detail/   # Period detail service
+│   ├── reimbursement/   # Reimbursement service
+│   └── user/            # User service
 ├── utils/                # Utility functions
+│   ├── bcrypt/          # Password hashing
+│   ├── code_generator/  # Code generation utilities
+│   ├── data_tipes/      # Custom data types
 │   ├── env/             # Environment utilities
+│   ├── jwt/             # JWT utilities
 │   ├── logger/          # Logging utilities
 │   └── validator/       # Validation utilities
 ├── main.go              # Entry point
