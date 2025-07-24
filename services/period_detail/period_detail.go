@@ -17,7 +17,6 @@ import (
 	reimbursementRepo "github.com/riskykurniawan15/payrolls/repositories/reimbursement"
 	userRepo "github.com/riskykurniawan15/payrolls/repositories/user"
 	"github.com/riskykurniawan15/payrolls/utils/logger"
-	"gorm.io/gorm"
 )
 
 type (
@@ -33,7 +32,6 @@ type (
 		attendanceRepo    attendanceRepo.IAttendanceRepository
 		overtimeRepo      overtimeRepo.IOvertimeRepository
 		reimbursementRepo reimbursementRepo.IReimbursementRepository
-		db                *gorm.DB
 	}
 
 	// PayrollData for storing calculation results
@@ -72,7 +70,6 @@ func NewPeriodDetailService(
 	attendanceRepo attendanceRepo.IAttendanceRepository,
 	overtimeRepo overtimeRepo.IOvertimeRepository,
 	reimbursementRepo reimbursementRepo.IReimbursementRepository,
-	db *gorm.DB,
 ) IPeriodDetailService {
 	return &PeriodDetailService{
 		logger:            logger,
@@ -82,7 +79,6 @@ func NewPeriodDetailService(
 		attendanceRepo:    attendanceRepo,
 		overtimeRepo:      overtimeRepo,
 		reimbursementRepo: reimbursementRepo,
-		db:                db,
 	}
 }
 

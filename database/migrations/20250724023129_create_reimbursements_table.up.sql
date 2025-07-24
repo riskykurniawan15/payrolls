@@ -3,7 +3,7 @@ CREATE TABLE reimbursements (
     user_id BIGINT NOT NULL,
     title VARCHAR(100) NOT NULL,
     date TIMESTAMP WITH TIME ZONE NOT NULL,
-    total DECIMAL(15,2) NOT NULL,
+    amount DECIMAL(15,2) NOT NULL,
     description TEXT,
     created_by BIGINT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

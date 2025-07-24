@@ -83,7 +83,7 @@ func (repo ReimbursementRepository) List(ctx context.Context, req reimbursement.
 			if err == nil {
 				// Set end date to end of day
 				endDate = endDate.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
-				query = query.Where("date BETWEEN ? AND ?", startDate, endDate)
+				query = query.Where("date(date) BETWEEN date(?) AND (?)", startDate, endDate)
 			}
 		}
 	}
@@ -139,7 +139,7 @@ func (repo ReimbursementRepository) GetByUserAndDateRange(ctx context.Context, u
 	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
 	defer cancel()
 	err := repo.getInstanceDB(ctx).WithContext(ctxWT).
-		Where("user_id = ? AND date BETWEEN ? AND ?", userID, startDate, endDate).
+		Where("user_id = ? AND date(date) BETWEEN date(?) AND date(?)", userID, startDate, endDate).
 		Order("date ASC").
 		Find(&reimbursements).Error
 	return reimbursements, err

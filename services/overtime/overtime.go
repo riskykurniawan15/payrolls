@@ -47,14 +47,10 @@ func (s *OvertimeService) Create(ctx context.Context, req overtime.CreateOvertim
 	})
 
 	// Parse overtime date
-	overtimeDate, err := time.Parse("2006-01-02", req.OvertimesDate)
-	if err != nil {
-		s.logger.ErrorT("invalid overtimes_date format", requestID, map[string]interface{}{
-			"error":          err.Error(),
-			"overtimes_date": req.OvertimesDate,
-		})
-		return nil, fmt.Errorf("invalid overtimes_date format. Use YYYY-MM-DD: %w", err)
+	if req.OvertimesDate == nil {
+		return nil, fmt.Errorf("overtimes_date is required")
 	}
+	overtimeDate := req.OvertimesDate.Time
 
 	// Check if date is in the future
 	if overtimeDate.After(time.Now()) {
@@ -263,10 +259,7 @@ func (s *OvertimeService) Update(ctx context.Context, id uint, req overtime.Upda
 
 	// Update overtimes_date if provided
 	if req.OvertimesDate != nil {
-		overtimeDate, err := time.Parse("2006-01-02", *req.OvertimesDate)
-		if err != nil {
-			return nil, fmt.Errorf("invalid overtimes_date format. Use YYYY-MM-DD: %w", err)
-		}
+		overtimeDate := req.OvertimesDate.Time
 
 		// Check if date is in the future
 		if overtimeDate.After(time.Now()) {
@@ -299,7 +292,7 @@ func (s *OvertimeService) Update(ctx context.Context, id uint, req overtime.Upda
 		// Check total hours limit (max 3 hours per day)
 		overtimeDate := existingOvertime.OvertimesDate
 		if req.OvertimesDate != nil {
-			overtimeDate, _ = time.Parse("2006-01-02", *req.OvertimesDate)
+			overtimeDate = req.OvertimesDate.Time
 		}
 
 		totalHours, err := s.overtimeRepo.GetTotalHoursByUserAndDate(ctx, existingOvertime.UserID, overtimeDate)

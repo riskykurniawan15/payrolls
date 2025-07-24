@@ -101,7 +101,7 @@ func (repo OvertimeRepository) List(ctx context.Context, req overtime.ListOverti
 		}
 		query = query.Order(fmt.Sprintf("%s %s", req.SortBy, sortOrder))
 	} else {
-		query = query.Order("created_at DESC")
+		query = query.Order("overtimes_date DESC")
 	}
 
 	// Apply pagination
@@ -137,7 +137,7 @@ func (repo OvertimeRepository) GetTotalHoursByUserAndDate(ctx context.Context, u
 	var totalHours float64
 	// Get total hours for the specific date (from start of day to end of day)
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
-	endOfDay := startOfDay.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+	endOfDay := startOfDay.Add(24*time.Hour + 59*time.Minute + 59*time.Second)
 
 	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
 	defer cancel()

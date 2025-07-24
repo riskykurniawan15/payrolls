@@ -166,6 +166,8 @@ func (s *PayslipService) GetPayslipData(ctx context.Context, token string) (*pay
 		"user_id":          tokenData.UserID,
 	})
 
+	payslipData.CompanyName = s.config.CompanyName
+
 	return payslipData, nil
 }
 

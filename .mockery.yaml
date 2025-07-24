@@ -1,0 +1,44 @@
+with-expecter: true
+packages:
+  github.com/riskykurniawan15/payrolls/repositories/user:
+    interfaces:
+      IUserRepository:
+        config:
+          dir: "mocks"
+          filename: "user_repository.go"
+          outpkg: "mocks"
+  github.com/riskykurniawan15/payrolls/repositories/period:
+    interfaces:
+      IPeriodRepository:
+        config:
+          dir: "mocks"
+          filename: "period_repository.go"
+          outpkg: "mocks"
+  github.com/riskykurniawan15/payrolls/repositories/period_detail:
+    interfaces:
+      IPeriodDetailRepository:
+        config:
+          dir: "mocks"
+          filename: "period_detail_repository.go"
+          outpkg: "mocks"
+  github.com/riskykurniawan15/payrolls/repositories/attendance:
+    interfaces:
+      IAttendanceRepository:
+        config:
+          dir: "mocks"
+          filename: "attendance_repository.go"
+          outpkg: "mocks"
+  github.com/riskykurniawan15/payrolls/repositories/overtime:
+    interfaces:
+      IOvertimeRepository:
+        config:
+          dir: "mocks"
+          filename: "overtime_repository.go"
+          outpkg: "mocks"
+  github.com/riskykurniawan15/payrolls/repositories/reimbursement:
+    interfaces:
+      IReimbursementRepository:
+        config:
+          dir: "mocks"
+          filename: "reimbursement_repository.go"
+          outpkg: "mocks" 

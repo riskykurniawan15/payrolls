@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"math/rand"
+	"github.com/riskykurniawan15/payrolls/utils/code_generator"
 
 	"github.com/riskykurniawan15/payrolls/constant"
 	"github.com/riskykurniawan15/payrolls/models/period"
@@ -219,38 +219,21 @@ func (repo PeriodRepository) GetConflictingPeriods(ctx context.Context, startDat
 }
 
 func (repo PeriodRepository) GenerateUniqueCode(ctx context.Context) (string, error) {
-	// Import the code generator
-	codeGen := "PRD/" + time.Now().Format("20060102") + "/"
-
 	// Try up to 10 times to generate a unique code
 	for i := 0; i < 10; i++ {
-		randomCode := generateRandomCode()
-		fullCode := codeGen + randomCode
+		randomCode := code_generator.GeneratePeriodCode("PRD", 3)
 
-		exists, err := repo.IsCodeExists(ctx, fullCode)
+		exists, err := repo.IsCodeExists(ctx, randomCode)
 		if err != nil {
 			return "", err
 		}
 
 		if !exists {
-			return fullCode, nil
+			return randomCode, nil
 		}
 	}
 
 	return "", fmt.Errorf("failed to generate unique code after 10 attempts")
-}
-
-// Helper function to generate random 3-character code
-func generateRandomCode() string {
-	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-	const codeLength = 3
-
-	code := make([]byte, codeLength)
-	for i := range code {
-		code[i] = chars[rand.Intn(len(chars))]
-	}
-
-	return string(code)
 }
 
 // Helper function to convert Period to PeriodResponse

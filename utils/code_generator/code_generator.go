@@ -7,13 +7,11 @@ import (
 
 const (
 	// Characters for code generation (uppercase letters only)
-	chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	// Code length
-	codeLength = 5
+	chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 )
 
 // GenerateRandomCode generates a random 5-character uppercase code
-func GenerateRandomCode() string {
+func GenerateRandomCode(codeLength int) string {
 	// Set random seed
 	rand.Seed(time.Now().UnixNano())
 
@@ -27,19 +25,10 @@ func GenerateRandomCode() string {
 }
 
 // GeneratePeriodCode generates a period code with format PRD/YYYYMMDD/{random_code}
-func GeneratePeriodCode() string {
+func GeneratePeriodCode(prefix string, codeLength int) string {
 	now := time.Now()
 	dateStr := now.Format("20060102") // YYYYMMDD format
-	randomCode := GenerateRandomCode()
+	randomCode := GenerateRandomCode(codeLength)
 
-	return "PRD/" + dateStr + "/" + randomCode
-}
-
-// IsCodeExists checks if a code already exists (case-insensitive)
-// This function should be implemented in the repository layer
-// For now, we'll just return the function signature
-func IsCodeExists(code string) bool {
-	// This will be implemented in the repository
-	// Check if code exists where status != 9 (case-insensitive)
-	return false
+	return prefix + "/" + dateStr + "/" + randomCode
 }

@@ -46,7 +46,7 @@ func (handler PeriodDetailHandler) RunPayroll(ctx echo.Context) error {
 	userID := middleware.GetUserID(ctx)
 
 	// Call service
-	serviceCtx := ctx.Request().Context()
+	serviceCtx := middleware.AddRequestIDToContext(ctx.Request().Context(), middleware.GetRequestID(ctx))
 	response, err := handler.periodDetailServices.RunPayroll(serviceCtx, uint(periodID), userID)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, entities.ResponseFormater(http.StatusBadRequest, map[string]interface{}{

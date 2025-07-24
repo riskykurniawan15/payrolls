@@ -2,6 +2,8 @@ package period
 
 import (
 	"time"
+
+	"github.com/riskykurniawan15/payrolls/utils/data_tipes"
 )
 
 type (
@@ -23,18 +25,18 @@ type (
 
 	// CreatePeriodRequest for creating new period
 	CreatePeriodRequest struct {
-		Code      *string `json:"code" validate:"omitempty,min=3,max=50"`
-		Name      string  `json:"name" validate:"required,min=3,max=100"`
-		StartDate string  `json:"start_date" validate:"required,datetime=2006-01-02"`
-		EndDate   string  `json:"end_date" validate:"required,datetime=2006-01-02"`
+		Code      *string                `json:"code" validate:"omitempty,min=3,max=50"`
+		Name      string                 `json:"name" validate:"required,min=3,max=100"`
+		StartDate *data_tipes.CustomDate `json:"start_date"`
+		EndDate   *data_tipes.CustomDate `json:"end_date"`
 	}
 
 	// UpdatePeriodRequest for updating period
 	UpdatePeriodRequest struct {
-		Code      *string `json:"code" validate:"omitempty,min=3,max=50"`
-		Name      *string `json:"name" validate:"omitempty,min=3,max=100"`
-		StartDate *string `json:"start_date" validate:"omitempty,datetime=2006-01-02"`
-		EndDate   *string `json:"end_date" validate:"omitempty,datetime=2006-01-02"`
+		Code      *string                `json:"code" validate:"omitempty,min=3,max=50"`
+		Name      *string                `json:"name" validate:"omitempty,min=3,max=100"`
+		StartDate *data_tipes.CustomDate `json:"start_date,omitempty"`
+		EndDate   *data_tipes.CustomDate `json:"end_date,omitempty"`
 	}
 
 	// PeriodResponse for API responses

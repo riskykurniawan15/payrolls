@@ -45,16 +45,8 @@ func (s *ReimbursementService) Create(ctx context.Context, req reimbursement.Cre
 
 	// Parse date or use today
 	var reimbursementDate time.Time
-	if req.Date != nil && *req.Date != "" {
-		date, err := time.Parse("2006-01-02", *req.Date)
-		if err != nil {
-			s.logger.ErrorT("invalid date format", requestID, map[string]interface{}{
-				"error": err.Error(),
-				"date":  *req.Date,
-			})
-			return nil, fmt.Errorf("invalid date format. Use YYYY-MM-DD: %w", err)
-		}
-		reimbursementDate = date
+	if req.Date != nil {
+		reimbursementDate = req.Date.Time
 	} else {
 		// Use today's date at 00:00:00
 		now := time.Now()
@@ -204,10 +196,7 @@ func (s *ReimbursementService) Update(ctx context.Context, id uint, req reimburs
 
 	// Update date if provided
 	if req.Date != nil {
-		date, err := time.Parse("2006-01-02", *req.Date)
-		if err != nil {
-			return nil, fmt.Errorf("invalid date format. Use YYYY-MM-DD: %w", err)
-		}
+		date := req.Date.Time
 
 		// Check if date is in the future
 		if date.After(time.Now()) {

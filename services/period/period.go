@@ -85,25 +85,16 @@ func (s *PeriodService) Create(ctx context.Context, req period.CreatePeriodReque
 		})
 	}
 
-	// Parse start date
-	startDate, err := time.Parse("2006-01-02", req.StartDate)
-	if err != nil {
-		s.logger.ErrorT("invalid start_date format", requestID, map[string]interface{}{
-			"error":      err.Error(),
-			"start_date": req.StartDate,
-		})
-		return nil, fmt.Errorf("invalid start_date format. Use YYYY-MM-DD: %w", err)
+	// Parse start and end date
+	if req.StartDate == nil {
+		return nil, fmt.Errorf("start_date is required")
 	}
+	if req.EndDate == nil {
+		return nil, fmt.Errorf("end_date is required")
+	}
+	startDate := req.StartDate.Time
+	endDate := req.EndDate.Time
 
-	// Parse end date and set to end of day (23:59:59)
-	endDate, err := time.Parse("2006-01-02", req.EndDate)
-	if err != nil {
-		s.logger.ErrorT("invalid end_date format", requestID, map[string]interface{}{
-			"error":    err.Error(),
-			"end_date": req.EndDate,
-		})
-		return nil, fmt.Errorf("invalid end_date format. Use YYYY-MM-DD: %w", err)
-	}
 	// Set end date to 23:59:59
 	endDate = endDate.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
 
@@ -317,11 +308,7 @@ func (s *PeriodService) Update(ctx context.Context, id uint, req period.UpdatePe
 
 	// Parse start date if provided
 	if req.StartDate != nil {
-		startDate, err := time.Parse("2006-01-02", *req.StartDate)
-		if err != nil {
-			return nil, fmt.Errorf("invalid start_date format. Use YYYY-MM-DD: %w", err)
-		}
-		newStartDate = startDate
+		newStartDate = req.StartDate.Time
 		hasDateChanges = true
 	} else {
 		newStartDate = existingPeriod.StartDate
@@ -329,12 +316,8 @@ func (s *PeriodService) Update(ctx context.Context, id uint, req period.UpdatePe
 
 	// Parse end date if provided
 	if req.EndDate != nil {
-		endDate, err := time.Parse("2006-01-02", *req.EndDate)
-		if err != nil {
-			return nil, fmt.Errorf("invalid end_date format. Use YYYY-MM-DD: %w", err)
-		}
 		// Set end date to 23:59:59
-		endDate = endDate.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+		endDate := req.EndDate.Time.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
 		newEndDate = endDate
 		hasDateChanges = true
 	} else {

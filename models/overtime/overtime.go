@@ -2,6 +2,8 @@ package overtime
 
 import (
 	"time"
+
+	"github.com/riskykurniawan15/payrolls/utils/data_tipes"
 )
 
 type (
@@ -19,14 +21,14 @@ type (
 
 	// CreateOvertimeRequest for creating new overtime
 	CreateOvertimeRequest struct {
-		OvertimesDate  string  `json:"overtimes_date" validate:"required,datetime=2006-01-02"`
-		TotalHoursTime float64 `json:"total_hours_time" validate:"required,min=0.01,max=3.00"`
+		OvertimesDate  *data_tipes.CustomDate `json:"overtimes_date"`
+		TotalHoursTime float64                `json:"total_hours_time" validate:"required,min=0.01,max=3.00"`
 	}
 
 	// UpdateOvertimeRequest for updating overtime
 	UpdateOvertimeRequest struct {
-		OvertimesDate  *string  `json:"overtimes_date" validate:"omitempty,datetime=2006-01-02"`
-		TotalHoursTime *float64 `json:"total_hours_time" validate:"omitempty,min=0.01,max=3.00"`
+		OvertimesDate  *data_tipes.CustomDate `json:"overtimes_date"`
+		TotalHoursTime *float64               `json:"total_hours_time" validate:"omitempty,min=0.01,max=3.00"`
 	}
 
 	// OvertimeResponse for API responses

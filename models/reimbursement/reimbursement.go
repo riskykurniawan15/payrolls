@@ -2,6 +2,8 @@ package reimbursement
 
 import (
 	"time"
+
+	"github.com/riskykurniawan15/payrolls/utils/data_tipes"
 )
 
 type (
@@ -21,18 +23,18 @@ type (
 
 	// CreateReimbursementRequest for creating new reimbursement
 	CreateReimbursementRequest struct {
-		Title       string  `json:"title" validate:"required,min=3,max=100"`
-		Date        *string `json:"date" validate:"omitempty,datetime=2006-01-02"`
-		Amount      float64 `json:"amount" validate:"required,min=0.01"`
-		Description *string `json:"description" validate:"omitempty,max=500"`
+		Title       string                 `json:"title" validate:"required,min=3,max=100"`
+		Date        *data_tipes.CustomDate `json:"date"`
+		Amount      float64                `json:"amount" validate:"required,min=0.01"`
+		Description *string                `json:"description" validate:"omitempty,max=500"`
 	}
 
 	// UpdateReimbursementRequest for updating reimbursement
 	UpdateReimbursementRequest struct {
-		Title       *string  `json:"title" validate:"omitempty,min=3,max=100"`
-		Date        *string  `json:"date" validate:"omitempty,datetime=2006-01-02"`
-		Amount      *float64 `json:"amount" validate:"omitempty,min=0.01"`
-		Description *string  `json:"description" validate:"omitempty,max=500"`
+		Title       *string                `json:"title" validate:"omitempty,min=3,max=100"`
+		Date        *data_tipes.CustomDate `json:"date"`
+		Amount      *float64               `json:"amount" validate:"omitempty,min=0.01"`
+		Description *string                `json:"description" validate:"omitempty,max=500"`
 	}
 
 	// ReimbursementResponse for API responses

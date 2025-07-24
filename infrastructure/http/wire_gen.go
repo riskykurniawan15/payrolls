@@ -52,7 +52,7 @@ func InitializeHandler(db *gorm.DB, cfg config.Config, logger2 logger.Logger) *D
 	iAttendanceRepository := attendance.NewAttendanceRepository(db)
 	iOvertimeRepository := overtime.NewOvertimeRepository(db)
 	iReimbursementRepository := reimbursement.NewReimbursementRepository(db)
-	iPeriodDetailService := period_detail2.NewPeriodDetailService(logger2, iPeriodDetailRepository, iPeriodRepository, iUserRepository, iAttendanceRepository, iOvertimeRepository, iReimbursementRepository, db)
+	iPeriodDetailService := period_detail2.NewPeriodDetailService(logger2, iPeriodDetailRepository, iPeriodRepository, iUserRepository, iAttendanceRepository, iOvertimeRepository, iReimbursementRepository)
 	iPeriodDetailHandler := period_detail3.NewPeriodDetailHandlers(iPeriodDetailService, logger2)
 	iAttendanceService := attendance2.NewAttendanceService(logger2, iAttendanceRepository)
 	iAttendanceHandler := attendance3.NewAttendanceHandlers(logger2, iAttendanceService)

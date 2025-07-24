@@ -1,20 +1,15 @@
 package attendance
 
 import (
-	"fmt"
-	"strings"
 	"time"
+
+	"github.com/riskykurniawan15/payrolls/utils/data_tipes"
 )
 
 type (
 	// AttendanceRequest represents the request for check-in
 	AttendanceRequest struct {
-		Date *CustomTime `json:"date,omitempty"` // Optional, if not provided use current time
-	}
-
-	// CustomTime represents a custom time type that handles YYYY-MM-DD HH:MM:SS format
-	CustomTime struct {
-		time.Time
+		Date *data_tipes.CustomDateTime `json:"date,omitempty"` // Optional, if not provided use current time
 	}
 
 	// AttendanceResponse represents the attendance response
@@ -22,7 +17,7 @@ type (
 		ID           uint       `json:"id"`
 		UserID       uint       `json:"user_id"`
 		CheckInDate  time.Time  `json:"check_in_date"`
-		CheckOutDate *time.Time `json:"check_out_date,omitempty"`
+		CheckOutDate *time.Time `json:"check_out_date"`
 		CreatedAt    time.Time  `json:"created_at"`
 		UpdatedAt    *time.Time `json:"updated_at"`
 	}
@@ -57,33 +52,6 @@ type (
 // TableName specifies the table name for Attendance model
 func (Attendance) TableName() string {
 	return "attendances"
-}
-
-// UnmarshalJSON implements custom JSON unmarshaling for CustomTime
-func (ct *CustomTime) UnmarshalJSON(data []byte) error {
-	// Remove quotes from the string
-	str := strings.Trim(string(data), `"`)
-
-	// If empty string, return nil
-	if str == "" || str == "null" {
-		return nil
-	}
-
-	// Parse using the specific format: YYYY-MM-DD HH:MM:SS
-	if t, err := time.ParseInLocation("2006-01-02 15:04:05", str, time.Local); err == nil {
-		ct.Time = t
-		return nil
-	}
-
-	return fmt.Errorf("unable to parse date: %s. Expected format: YYYY-MM-DD HH:MM:SS (e.g., 2024-01-01 08:00:00)", str)
-}
-
-// MarshalJSON implements custom JSON marshaling for CustomTime
-func (ct CustomTime) MarshalJSON() ([]byte, error) {
-	if ct.Time.IsZero() {
-		return []byte("null"), nil
-	}
-	return []byte(fmt.Sprintf(`"%s"`, ct.Time.Format("2006-01-02 15:04:05"))), nil
 }
 
 // IsWeekday checks if the given date is a weekday (Monday to Friday)
