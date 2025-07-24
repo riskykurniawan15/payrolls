@@ -9,6 +9,7 @@ import (
 
 type (
 	Config struct {
+		CompanyName string
 		Http        HttpServer
 		PostgressDB PostgressDB
 		JWT         JWTConfig
@@ -53,6 +54,7 @@ func Configuration() Config {
 	}
 
 	cfg := Config{
+		CompanyName: env.GetEnv("COMPANY_NAME", "Blank Company"),
 		Http:        loadHttpServer(),
 		PostgressDB: loadDBServer(),
 		JWT:         loadJWTConfig(),
