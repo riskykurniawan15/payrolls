@@ -1,0 +1,2605 @@
+{
+	"info": {
+		"_postman_id": "1206fb70-8189-4130-ac66-088316b6f0c6",
+		"name": "payrolls",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "46987795"
+	},
+	"item": [
+		{
+			"name": "health",
+			"item": [
+				{
+					"name": "health",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{server}}/health",
+							"host": [
+								"{{server}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "health",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{server}}/health",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"health"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "X-Request-Id",
+									"value": "7ea7c5dd-e298-4859-b464-fb16860ffb5e"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 24 Jul 2025 13:11:19 GMT"
+								},
+								{
+									"key": "Content-Length",
+									"value": "243"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"data\": {\n        \"status\": {\n            \"database\": \"connected\"\n        },\n        \"database\": {\n            \"MaxOpenConnections\": 100,\n            \"OpenConnections\": 1,\n            \"InUse\": 0,\n            \"Idle\": 1,\n            \"WaitCount\": 0,\n            \"WaitDuration\": 0,\n            \"MaxIdleClosed\": 0,\n            \"MaxIdleTimeClosed\": 0,\n            \"MaxLifetimeClosed\": 0\n        }\n    }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Simple version - token only\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"if (response.status === 200 && response.data && response.data.token) {\r",
+									"    pm.collectionVariables.set(\"token\", response.data.token);\r",
+									"    console.log(\"Token saved:\", response.data.token);\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"admin\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server}}/auth/login",
+							"host": [
+								"{{server}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "login",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"admin\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server}}/auth/login",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "X-Request-Id",
+									"value": "ebf267c3-19b6-496a-856e-5c353b4a70ef"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 24 Jul 2025 13:11:10 GMT"
+								},
+								{
+									"key": "Content-Length",
+									"value": "338"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"data\": {\n        \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTM0NDkwNzAsImlhdCI6MTc1MzM2MjY3MCwicm9sZSI6ImFkbWluIiwidXNlcl9pZCI6MSwidXNlcm5hbWUiOiJhZG1pbiJ9.WCd7-fi9LvlJGa5QWWcq70bsyFZ-vlFlURyuVf6xvdo\",\n        \"expires_at\": \"2025-07-25T20:11:10.7547282+07:00\",\n        \"user\": {\n            \"id\": 1,\n            \"username\": \"admin\",\n            \"role\": \"admin\"\n        }\n    }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_JWT_TOKEN_HERE"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{server}}/user/profile",
+							"host": [
+								"{{server}}"
+							],
+							"path": [
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "profile",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_JWT_TOKEN_HERE"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{server}}/user/profile",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"user",
+										"profile"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "X-Request-Id",
+									"value": "534c2d25-b9ae-4c83-9ad7-d63200a19178"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 24 Jul 2025 13:11:00 GMT"
+								},
+								{
+									"key": "Content-Length",
+									"value": "174"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"data\": {\n        \"id\": 1,\n        \"username\": \"admin\",\n        \"role\": \"admin\",\n        \"created_at\": \"2025-07-24T10:39:08.10028+07:00\",\n        \"updated_at\": \"2025-07-24T10:39:08.11865+07:00\"\n    }\n}"
+						}
+					]
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Employee",
+			"item": [
+				{
+					"name": "attendances",
+					"item": [
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_JWT_TOKEN"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{server}}/attendances?page=1&limit=10&start_date=2025-07-01&end_date=2025-07-31",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"attendances"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "start_date",
+											"value": "2025-07-01"
+										},
+										{
+											"key": "end_date",
+											"value": "2025-07-31"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "list",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_JWT_TOKEN"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{server}}/attendances?page=1&limit=10&start_date=2025-07-01&end_date=2025-07-31",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"attendances"
+											],
+											"query": [
+												{
+													"key": "page",
+													"value": "1"
+												},
+												{
+													"key": "limit",
+													"value": "10"
+												},
+												{
+													"key": "start_date",
+													"value": "2025-07-01"
+												},
+												{
+													"key": "end_date",
+													"value": "2025-07-31"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "59ac16a9-0985-4d1a-9c8b-107d57d1cbfe"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 13:16:37 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "453"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"meta\": {\n        \"page\": 1,\n        \"limit\": 10,\n        \"total\": 2,\n        \"total_pages\": 1\n    },\n    \"data\": [\n        {\n            \"id\": 5,\n            \"user_id\": 2,\n            \"check_in_date\": \"2025-07-02T00:00:00+07:00\",\n            \"check_out_date\": null,\n            \"created_at\": \"2025-07-24T20:15:37.474535+07:00\",\n            \"updated_at\": null\n        },\n        {\n            \"id\": 4,\n            \"user_id\": 2,\n            \"check_in_date\": \"2025-07-01T00:00:00+07:00\",\n            \"check_out_date\": \"2025-07-01T09:00:00+07:00\",\n            \"created_at\": \"2025-07-24T20:14:53.522754+07:00\",\n            \"updated_at\": \"2025-07-24T20:15:30.100865+07:00\"\n        }\n    ]\n}"
+								}
+							]
+						},
+						{
+							"name": "check-in",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"date\": \"2025-07-01 00:00:00\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server}}/attendances/check-in",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"attendances",
+										"check-in"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "check-in",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"date\": \"2025-07-01 00:00:00\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{server}}/attendances/check-in",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"attendances",
+												"check-in"
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "4e89514d-10c7-429d-8957-c979535394ed"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 13:14:53 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "174"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 201,\n    \"message\": \"Created\",\n    \"data\": {\n        \"id\": 4,\n        \"user_id\": 2,\n        \"check_in_date\": \"2025-07-01T00:00:00+07:00\",\n        \"created_at\": \"2025-07-24T20:14:53.5227545+07:00\",\n        \"updated_at\": null\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "check-out",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"date\": \"2025-07-01 09:00:00\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server}}/attendances/check-out",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"attendances",
+										"check-out"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "check-out",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"date\": \"2025-07-01 09:00:00\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{server}}/attendances/check-out",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"attendances",
+												"check-out"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "72ead64b-a4b0-4663-982d-4185f6bdba66"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 13:15:30 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "244"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"data\": {\n        \"id\": 4,\n        \"user_id\": 2,\n        \"check_in_date\": \"2025-07-01T00:00:00+07:00\",\n        \"check_out_date\": \"2025-07-01T09:00:00+07:00\",\n        \"created_at\": \"2025-07-24T20:14:53.522754+07:00\",\n        \"updated_at\": \"2025-07-24T20:15:30.0993085+07:00\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "check-out-id",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"date\": \"2025-07-23 09:00:00\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server}}/attendances/check-out/:id",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"attendances",
+										"check-out",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "6"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "check-out-id",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"date\": \"2025-07-23 09:00:00\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{server}}/attendances/check-out/:id",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"attendances",
+												"check-out",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "6"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "5c696a07-3f92-410f-b752-91f5665d43f1"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 13:17:29 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "244"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"data\": {\n        \"id\": 6,\n        \"user_id\": 2,\n        \"check_in_date\": \"2025-07-03T00:00:00+07:00\",\n        \"check_out_date\": \"2025-07-23T09:00:00+07:00\",\n        \"created_at\": \"2025-07-24T20:17:21.456908+07:00\",\n        \"updated_at\": \"2025-07-24T20:17:29.9281969+07:00\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "detail",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_JWT_TOKEN"
+									}
+								],
+								"url": {
+									"raw": "{{server}}/attendances/1",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"attendances",
+										"1"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "detail",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_JWT_TOKEN"
+											}
+										],
+										"url": {
+											"raw": "{{server}}/attendances/1",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"attendances",
+												"1"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "5875bd3d-4878-4c85-8284-2e9f20eddb46"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 13:19:16 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "249"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"data\": {\n        \"id\": 1,\n        \"user_id\": 2,\n        \"check_in_date\": \"2024-01-02T00:00:00+07:00\",\n        \"check_out_date\": \"2025-07-24T13:06:10.63633+07:00\",\n        \"created_at\": \"2025-07-24T13:01:04.691743+07:00\",\n        \"updated_at\": \"2025-07-24T13:06:10.635986+07:00\"\n    }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "overtimes",
+					"item": [
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_JWT_TOKEN"
+									}
+								],
+								"url": {
+									"raw": "{{server}}/overtimes?start_date=2024-01-01&end_date=2024-01-31",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"overtimes"
+									],
+									"query": [
+										{
+											"key": "start_date",
+											"value": "2024-01-01"
+										},
+										{
+											"key": "end_date",
+											"value": "2024-01-31"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "list",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_JWT_TOKEN"
+											}
+										],
+										"url": {
+											"raw": "{{server}}/overtimes?start_date=2024-01-01&end_date=2024-01-31",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"overtimes"
+											],
+											"query": [
+												{
+													"key": "start_date",
+													"value": "2024-01-01"
+												},
+												{
+													"key": "end_date",
+													"value": "2024-01-31"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "36298037-0490-44e2-bb59-e93ee6d27261"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 14:47:35 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "718"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"meta\": {\n        \"page\": 1,\n        \"limit\": 10,\n        \"total\": 3,\n        \"total_pages\": 1\n    },\n    \"data\": [\n        {\n            \"id\": 3,\n            \"user_id\": 2,\n            \"overtimes_date\": \"2024-01-02T00:00:00+07:00\",\n            \"total_hours_time\": 0.5,\n            \"created_by\": 2,\n            \"created_at\": \"2025-07-24T21:39:28.368038+07:00\",\n            \"updated_by\": null,\n            \"updated_at\": null\n        },\n        {\n            \"id\": 1,\n            \"user_id\": 2,\n            \"overtimes_date\": \"2024-01-01T00:00:00+07:00\",\n            \"total_hours_time\": 2.5,\n            \"created_by\": 2,\n            \"created_at\": \"2025-07-24T13:06:16.587584+07:00\",\n            \"updated_by\": null,\n            \"updated_at\": \"2025-07-24T21:40:20.685331+07:00\"\n        },\n        {\n            \"id\": 2,\n            \"user_id\": 2,\n            \"overtimes_date\": \"2024-01-01T00:00:00+07:00\",\n            \"total_hours_time\": 2.5,\n            \"created_by\": 2,\n            \"created_at\": \"2025-07-24T20:25:50.472915+07:00\",\n            \"updated_by\": null,\n            \"updated_at\": \"2025-07-24T21:44:08.788324+07:00\"\n        }\n    ]\n}"
+								}
+							]
+						},
+						{
+							"name": "detail",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_JWT_TOKEN"
+									}
+								],
+								"url": {
+									"raw": "{{server}}/overtimes/:id",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"overtimes",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "detail",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_JWT_TOKEN"
+											}
+										],
+										"url": {
+											"raw": "{{server}}/overtimes/1",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"overtimes",
+												"1"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "f29508dc-b767-49c5-97df-7a7f3ac2c579"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 14:57:18 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "255"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"data\": {\n        \"id\": 1,\n        \"user_id\": 2,\n        \"overtimes_date\": \"2024-01-01T00:00:00+07:00\",\n        \"total_hours_time\": 2.5,\n        \"created_by\": 2,\n        \"created_at\": \"2025-07-24T13:06:16.587584+07:00\",\n        \"updated_by\": null,\n        \"updated_at\": \"2025-07-24T21:40:20.685331+07:00\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_JWT_TOKEN"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"overtimes_date\": \"2024-01-02\",\n    \"total_hours_time\": 2.5\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server}}/overtimes",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"overtimes"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "create",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_JWT_TOKEN"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"overtimes_date\": \"2024-01-02\",\n    \"total_hours_time\": 2.5\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{server}}/overtimes",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"overtimes"
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "4b022803-5c2c-4b72-afd1-48081b1ef396"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 13:25:50 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "226"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 201,\n    \"message\": \"Created\",\n    \"data\": {\n        \"id\": 2,\n        \"user_id\": 2,\n        \"overtimes_date\": \"2024-01-02T00:00:00Z\",\n        \"total_hours_time\": 2.5,\n        \"created_by\": 2,\n        \"created_at\": \"2025-07-24T20:25:50.4729157+07:00\",\n        \"updated_by\": null,\n        \"updated_at\": null\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "update",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_JWT_TOKEN"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"overtimes_date\": \"2024-01-02\",\n    \"total_hours_time\": 0.3\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server}}/overtimes/:id",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"overtimes",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "3"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "update",
+									"originalRequest": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_JWT_TOKEN"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"overtimes_date\": \"2024-01-02\",\n    \"total_hours_time\": 0.3\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{server}}/overtimes/:id",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"overtimes",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "3"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "c05c9e49-9c5f-4608-a16a-186568826400"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 15:11:59 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "252"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"data\": {\n        \"id\": 3,\n        \"user_id\": 2,\n        \"overtimes_date\": \"2024-01-02T00:00:00+07:00\",\n        \"total_hours_time\": 0.3,\n        \"created_by\": 2,\n        \"created_at\": \"2025-07-24T21:39:28.368038+07:00\",\n        \"updated_by\": 2,\n        \"updated_at\": \"2025-07-24T22:11:59.368568+07:00\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "delete",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_JWT_TOKEN"
+									}
+								],
+								"url": {
+									"raw": "{{server}}/overtimes/:i",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"overtimes",
+										":i"
+									],
+									"variable": [
+										{
+											"key": "i",
+											"value": "3"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "delete",
+									"originalRequest": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_JWT_TOKEN"
+											}
+										],
+										"url": {
+											"raw": "{{server}}/overtimes/:i",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"overtimes",
+												":i"
+											],
+											"variable": [
+												{
+													"key": "i",
+													"value": "3"
+												}
+											]
+										}
+									},
+									"status": "No Content",
+									"code": 204,
+									"_postman_previewlanguage": "plain",
+									"header": [
+										{
+											"key": "X-Request-Id",
+											"value": "73a77cfb-9a2b-4bca-9c04-a1c789fcfc2a"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 15:22:39 GMT"
+										}
+									],
+									"cookie": [],
+									"body": null
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "reimbursement",
+					"item": [
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_JWT_TOKEN"
+									}
+								],
+								"url": {
+									"raw": "{{server}}/reimbursements?start_date=2024-01-01&end_date=2024-01-31",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"reimbursements"
+									],
+									"query": [
+										{
+											"key": "start_date",
+											"value": "2024-01-01"
+										},
+										{
+											"key": "end_date",
+											"value": "2024-01-31"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "list",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_JWT_TOKEN"
+											}
+										],
+										"url": {
+											"raw": "{{server}}/reimbursements",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"reimbursements"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "94dbe314-a2c1-4c7d-99f9-be9fc955849a"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 15:37:01 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "387"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"meta\": {\n        \"page\": 1,\n        \"limit\": 10,\n        \"total\": 1,\n        \"total_pages\": 1\n    },\n    \"data\": [\n        {\n            \"id\": 1,\n            \"user_id\": 2,\n            \"title\": \"Biaya transportasi meeting\",\n            \"date\": \"2024-01-01T00:00:00+07:00\",\n            \"amount\": 50000,\n            \"description\": \"Biaya taksi untuk meeting dengan client\",\n            \"created_by\": 2,\n            \"created_at\": \"2025-07-24T22:29:55.260835+07:00\",\n            \"updated_by\": null,\n            \"updated_at\": \"2025-07-24T22:36:56.714586+07:00\"\n        }\n    ]\n}"
+								}
+							]
+						},
+						{
+							"name": "detail",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{server}}/reimbursements/:id",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"reimbursements",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "detail",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{server}}/reimbursements/:id",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"reimbursements",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "1"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "6e11af95-9358-46b6-ab0e-5886be5d68b0"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 15:47:30 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "330"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"data\": {\n        \"id\": 1,\n        \"user_id\": 2,\n        \"title\": \"Biaya transportasi meeting\",\n        \"date\": \"2024-01-01T00:00:00+07:00\",\n        \"amount\": 50000,\n        \"description\": \"Biaya taksi untuk meeting dengan client\",\n        \"created_by\": 2,\n        \"created_at\": \"2025-07-24T22:29:55.260835+07:00\",\n        \"updated_by\": null,\n        \"updated_at\": \"2025-07-24T22:36:56.714586+07:00\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_JWT_TOKEN"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"title\": \"Biaya transportasi meeting\",\n    \"date\": \"2024-01-01\",\n    \"amount\": 50000,\n    \"description\": \"Biaya taksi untuk meeting dengan client\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server}}/reimbursements",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"reimbursements"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "create",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_JWT_TOKEN"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"title\": \"Biaya transportasi meeting\",\n    \"date\": \"2024-01-01\",\n    \"amount\": 50000,\n    \"description\": \"Biaya taksi untuk meeting dengan client\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{server}}/reimbursements",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"reimbursements"
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "bb5c9d17-89bf-47a5-bd5a-563564c3b016"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 15:29:55 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "301"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 201,\n    \"message\": \"Created\",\n    \"data\": {\n        \"id\": 1,\n        \"user_id\": 2,\n        \"title\": \"Biaya transportasi meeting\",\n        \"date\": \"2024-01-01T00:00:00Z\",\n        \"amount\": 50000,\n        \"description\": \"Biaya taksi untuk meeting dengan client\",\n        \"created_by\": 2,\n        \"created_at\": \"2025-07-24T22:29:55.2608355+07:00\",\n        \"updated_by\": null,\n        \"updated_at\": null\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "update",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_JWT_TOKEN"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"title\": \"Biaya transportasi meeting 2\",\n    \"date\": \"2024-01-02\",\n    \"amount\": 150000,\n    \"description\": \"Biaya taksi untuk meeting dengan client dari aus\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server}}/reimbursements/:id",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"reimbursements",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "update",
+									"originalRequest": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_JWT_TOKEN"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"title\": \"Biaya transportasi meeting 2\",\n    \"date\": \"2024-01-02\",\n    \"amount\": 150000,\n    \"description\": \"Biaya taksi untuk meeting dengan client dari aus\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{server}}/reimbursements/:id",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"reimbursements",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "2"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "65c17f11-0ec2-42e0-9589-edddc421ede7"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 15:45:09 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "339"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"data\": {\n        \"id\": 2,\n        \"user_id\": 2,\n        \"title\": \"Biaya transportasi meeting 2\",\n        \"date\": \"2024-01-02T00:00:00+07:00\",\n        \"amount\": 150000,\n        \"description\": \"Biaya taksi untuk meeting dengan client dari aus\",\n        \"created_by\": 2,\n        \"created_at\": \"2025-07-24T22:41:13.185208+07:00\",\n        \"updated_by\": 2,\n        \"updated_at\": \"2025-07-24T22:45:09.753703+07:00\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "delete",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_JWT_TOKEN"
+									}
+								],
+								"url": {
+									"raw": "{{server}}/reimbursements/:id",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"reimbursements",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "delete",
+									"originalRequest": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_JWT_TOKEN"
+											}
+										],
+										"url": {
+											"raw": "{{server}}/reimbursements/:id",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"reimbursements",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "2"
+												}
+											]
+										}
+									},
+									"status": "No Content",
+									"code": 204,
+									"_postman_previewlanguage": "plain",
+									"header": [
+										{
+											"key": "X-Request-Id",
+											"value": "d9fa309d-422d-4886-bdc2-6ac216532b2f"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 15:46:24 GMT"
+										}
+									],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "payslip",
+					"item": [
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_JWT_TOKEN"
+									}
+								],
+								"url": {
+									"raw": "{{server}}/payslip?page=1&limit=10&sort_by=created_at&sort_desc=true",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"payslip"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "sort_by",
+											"value": "created_at"
+										},
+										{
+											"key": "sort_desc",
+											"value": "true"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "list",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_JWT_TOKEN"
+											}
+										],
+										"url": {
+											"raw": "{{server}}/payslip?page=1&limit=10&sort_by=created_at&sort_desc=true",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"payslip"
+											],
+											"query": [
+												{
+													"key": "page",
+													"value": "1"
+												},
+												{
+													"key": "limit",
+													"value": "10"
+												},
+												{
+													"key": "sort_by",
+													"value": "created_at"
+												},
+												{
+													"key": "sort_desc",
+													"value": "true"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "88d5f313-c8f5-4a9b-940b-a2216303232a"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 13:20:28 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "304"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"meta\": {\n        \"page\": 1,\n        \"limit\": 10,\n        \"total\": 1,\n        \"total_pages\": 1\n    },\n    \"data\": [\n        {\n            \"id\": 1101,\n            \"periods_id\": 1,\n            \"period_name\": \"January 2024\",\n            \"start_date\": \"2024-01-01T07:00:00+07:00\",\n            \"end_date\": \"2024-02-01T06:59:59+07:00\",\n            \"take_home_pay\": 850666.97,\n            \"created_at\": \"2025-07-24T20:05:50.995482+07:00\"\n        }\n    ]\n}"
+								}
+							]
+						},
+						{
+							"name": "generate",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_JWT_TOKEN"
+									}
+								],
+								"url": {
+									"raw": "{{server}}/payslip/generate/:id",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"payslip",
+										"generate",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1101"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "generate",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_JWT_TOKEN"
+											}
+										],
+										"url": {
+											"raw": "{{server}}/payslip/generate/:id",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"payslip",
+												"generate",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "1101"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "e5b114d3-e8f6-4dc5-a3c6-11756d401dca"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 13:20:50 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "460"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"data\": {\n        \"print_url\": \"http://localhost:9000/payslip/print?token=Z6oHekHL_PLtv5gzYVxwPvWejcSpu2E5kr09wRZ33ajRf0kpg-LrC0koa1SSGRDInS5joiuy6qX2E01xG3qlX-gVuF2jHkMBi6yqQBg8yxk3xMKVG0reaZ7Yjm_qSSsjFPhE1-lE3j6N48AfIzi7zci0\",\n        \"token\": \"Z6oHekHL_PLtv5gzYVxwPvWejcSpu2E5kr09wRZ33ajRf0kpg-LrC0koa1SSGRDInS5joiuy6qX2E01xG3qlX-gVuF2jHkMBi6yqQBg8yxk3xMKVG0reaZ7Yjm_qSSsjFPhE1-lE3j6N48AfIzi7zci0\",\n        \"expires_at\": \"2025-07-24T20:25:50.5929282+07:00\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "print",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{server}}/payslip/print?token=Z6oHekHL_PLtv5gzYVxwPvWejcSpu2E5kr09wRZ33ajRf0kpg-LrC0koa1SSGRDInS5joiuy6qX2E01xG3qlX-gVuF2jHkMBi6yqQBg8yxk3xMKVG0reaZ7Yjm_qSSsjFPhE1-lE3j6N48AfIzi7zci0",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"payslip",
+										"print"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "Z6oHekHL_PLtv5gzYVxwPvWejcSpu2E5kr09wRZ33ajRf0kpg-LrC0koa1SSGRDInS5joiuy6qX2E01xG3qlX-gVuF2jHkMBi6yqQBg8yxk3xMKVG0reaZ7Yjm_qSSsjFPhE1-lE3j6N48AfIzi7zci0"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "print",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{server}}/payslip/print?token=Z6oHekHL_PLtv5gzYVxwPvWejcSpu2E5kr09wRZ33ajRf0kpg-LrC0koa1SSGRDInS5joiuy6qX2E01xG3qlX-gVuF2jHkMBi6yqQBg8yxk3xMKVG0reaZ7Yjm_qSSsjFPhE1-lE3j6N48AfIzi7zci0",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"payslip",
+												"print"
+											],
+											"query": [
+												{
+													"key": "token",
+													"value": "Z6oHekHL_PLtv5gzYVxwPvWejcSpu2E5kr09wRZ33ajRf0kpg-LrC0koa1SSGRDInS5joiuy6qX2E01xG3qlX-gVuF2jHkMBi6yqQBg8yxk3xMKVG0reaZ7Yjm_qSSsjFPhE1-lE3j6N48AfIzi7zci0"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "html",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "text/html; charset=utf-8"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "97543443-f5bd-4421-a9e7-c5144d6563ee"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 13:22:38 GMT"
+										},
+										{
+											"key": "Transfer-Encoding",
+											"value": "chunked"
+										}
+									],
+									"cookie": [],
+									"body": "<!DOCTYPE html>\n<html lang=\"en\">\n    <head>\n        <meta charset=\"UTF-8\">\n        <title>Payslip</title>\n        <style>\n    @media print {\n      body {\n        margin: 0;\n        -webkit-print-color-adjust: exact;\n      }\n    }\n\n    body {\n      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n      max-width: 800px;\n      margin: 40px auto;\n      padding: 20px;\n    }\n\n    h1, h2 {\n      text-align: center;\n      margin-bottom: 10px;\n    }\n\n    .section-title {\n      background-color: #f0f0f0;\n      padding: 8px;\n      font-weight: bold;\n      margin-top: 20px;\n    }\n\n    table {\n      width: 100%;\n      border-collapse: collapse;\n      margin-top: 10px;\n    }\n\n    th, td {\n      padding: 8px;\n      border: 1px solid #ccc;\n      text-align: left;\n    }\n\n    .right {\n      text-align: right;\n    }\n\n    .total-row {\n      font-weight: bold;\n      background-color: #f9f9f9;\n    }\n\n    .footer {\n      margin-top: 40px;\n      text-align: center;\n      font-size: 12px;\n      color: #666;\n    }\n  </style>\n    </head>\n    <body onload=\"window.print()\">\n        <h1>PT Laba Rugi</h1>\n        <h2>Payslip</h2>\n        <p>\n            <strong>Employee:</strong> wanda_hartmann\n            <br>\n            <strong>Period:</strong> January 2024\n        </p>\n        <div class=\"section-title\">Work Summary</div>\n        <table>\n            <tr>\n                <th>Description</th>\n                <th class=\"right\">Amount</th>\n            </tr>\n            <tr>\n                <td>Total Working Days</td>\n                <td class=\"right\">2</td>\n            </tr>\n            <tr>\n                <td>Daily Rate</td>\n                <td class=\"right\">Rp. 324.063,60</td>\n            </tr>\n            <tr class=\"total-row\">\n                <td>Base Salary</td>\n                <td class=\"right\">Rp. 648.127,21</td>\n            </tr>\n        </table>\n        <div class=\"section-title\">Overtime</div>\n        <table>\n            <tr>\n                <th>Date</th>\n                <th>Hours</th>\n                <th class=\"right\">Amount</th>\n            </tr>\n            <tr>\n                <td>2024-01-01</td>\n                <td>2.5</td>\n                <td class=\"right\">Rp. 202.539,75</td>\n            </tr>\n            <tr class=\"total-row\">\n                <td colspan=\"2\">Total Overtime</td>\n                <td class=\"right\">Rp. 202.539,76</td>\n            </tr>\n        </table>\n        <div class=\"section-title\">Net Salary</div>\n        <table>\n            <tr class=\"total-row\">\n                <td>Take Home Pay</td>\n                <td class=\"right\">Rp. 850.666,96</td>\n            </tr>\n        </table>\n        <div class=\"footer\">\n    This payslip was generated automatically and does not require a signature.\n            <br>\n    Generated at: 2025-07-24 20:22:38\n  \n        </div>\n    </body>\n</html>"
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "periods",
+					"item": [
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_ADMIN_JWT_TOKEN"
+									}
+								],
+								"url": {
+									"raw": "{{server}}/periods?page=1&limit",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"periods"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": null
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "list",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_ADMIN_JWT_TOKEN"
+											}
+										],
+										"url": {
+											"raw": "{{server}}/periods?page=1&limit",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"periods"
+											],
+											"query": [
+												{
+													"key": "page",
+													"value": "1"
+												},
+												{
+													"key": "limit",
+													"value": null
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "27d35428-40d7-441e-ba3e-70aab4f686a0"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 12:54:57 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "740"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"meta\": {\n        \"page\": 1,\n        \"limit\": 10,\n        \"total\": 2,\n        \"total_pages\": 1\n    },\n    \"data\": [\n        {\n            \"id\": 2,\n            \"code\": \"PRD/20250724/1N5\",\n            \"name\": \"January 2025\",\n            \"start_date\": \"2025-01-01T07:00:00+07:00\",\n            \"end_date\": \"2025-02-01T06:59:59+07:00\",\n            \"status\": 1,\n            \"user_executable_payroll\": null,\n            \"payroll_date\": null,\n            \"created_by\": 1,\n            \"created_at\": \"2025-07-24T19:54:24.591507+07:00\",\n            \"updated_by\": null,\n            \"updated_at\": null\n        },\n        {\n            \"id\": 1,\n            \"code\": \"PRD/20250724/RC8\",\n            \"name\": \"January 2024\",\n            \"start_date\": \"2024-01-01T07:00:00+07:00\",\n            \"end_date\": \"2024-02-01T06:59:59+07:00\",\n            \"status\": 6,\n            \"user_executable_payroll\": 1,\n            \"payroll_date\": \"2025-07-24T13:41:52.466454+07:00\",\n            \"created_by\": 1,\n            \"created_at\": \"2025-07-24T12:39:27.007+07:00\",\n            \"updated_by\": 1,\n            \"updated_at\": \"2025-07-24T13:41:57.98159+07:00\"\n        }\n    ]\n}"
+								}
+							]
+						},
+						{
+							"name": "detail",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_ADMIN_JWT_TOKEN"
+									}
+								],
+								"url": {
+									"raw": "{{server}}/periods/:id",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"periods",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "detail",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_ADMIN_JWT_TOKEN"
+											}
+										],
+										"url": {
+											"raw": "{{server}}/periods/:id",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"periods",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "1"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "96b8c7c1-7a8c-44ba-8860-9e392fbb0879"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 12:56:16 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "385"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"data\": {\n        \"id\": 1,\n        \"code\": \"PRD/20250724/RC8\",\n        \"name\": \"January 2024\",\n        \"start_date\": \"2024-01-01T07:00:00+07:00\",\n        \"end_date\": \"2024-02-01T06:59:59+07:00\",\n        \"status\": 6,\n        \"user_executable_payroll\": 1,\n        \"payroll_date\": \"2025-07-24T13:41:52.466454+07:00\",\n        \"created_by\": 1,\n        \"created_at\": \"2025-07-24T12:39:27.007+07:00\",\n        \"updated_by\": 1,\n        \"updated_at\": \"2025-07-24T13:41:57.98159+07:00\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"January 2025\",\n    \"start_date\": \"2025-01-01\",\n    \"end_date\": \"2025-01-31\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server}}/periods",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"periods"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "create",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"name\": \"January 2025\",\n    \"start_date\": \"2025-01-01\",\n    \"end_date\": \"2025-01-31\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{server}}/periods",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"periods"
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "e0b3d6cd-2f2e-410c-b1d8-8d667dea3431"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 12:54:24 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "331"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 201,\n    \"message\": \"Created\",\n    \"data\": {\n        \"id\": 2,\n        \"code\": \"PRD/20250724/1N5\",\n        \"name\": \"January 2025\",\n        \"start_date\": \"2025-01-01T00:00:00Z\",\n        \"end_date\": \"2025-01-31T23:59:59Z\",\n        \"status\": 1,\n        \"user_executable_payroll\": null,\n        \"payroll_date\": null,\n        \"created_by\": 1,\n        \"created_at\": \"2025-07-24T19:54:24.5915074+07:00\",\n        \"updated_by\": null,\n        \"updated_at\": null\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "update",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_ADMIN_JWT_TOKEN"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"January 2025 Updated\",\n    \"start_date\": \"2025-01-01\",\n    \"end_date\": \"2025-01-31\"\n  }",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server}}/periods/:id",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"periods",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "update",
+									"originalRequest": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_ADMIN_JWT_TOKEN"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"name\": \"January 2025 Updated\",\n    \"start_date\": \"2025-01-01\",\n    \"end_date\": \"2025-01-31\"\n  }",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{server}}/periods/:id",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"periods",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "2"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "93472b91-d1cd-47a4-a798-ceb65586c26a"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 12:58:41 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "370"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"data\": {\n        \"id\": 2,\n        \"code\": \"PRD/20250724/1N5\",\n        \"name\": \"January 2025 Updated\",\n        \"start_date\": \"2025-01-01T07:00:00+07:00\",\n        \"end_date\": \"2025-02-01T06:59:59+07:00\",\n        \"status\": 1,\n        \"user_executable_payroll\": null,\n        \"payroll_date\": null,\n        \"created_by\": 1,\n        \"created_at\": \"2025-07-24T19:54:24.591507+07:00\",\n        \"updated_by\": 1,\n        \"updated_at\": \"2025-07-24T19:58:41.295273+07:00\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "delete",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{server}}/periods/2",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"periods",
+										"2"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "delete",
+									"originalRequest": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{server}}/periods/2",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"periods",
+												"2"
+											]
+										}
+									},
+									"status": "No Content",
+									"code": 204,
+									"_postman_previewlanguage": "plain",
+									"header": [
+										{
+											"key": "X-Request-Id",
+											"value": "81c60933-89e1-4b7f-a5c4-2d5dc4c10d03"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 13:08:40 GMT"
+										}
+									],
+									"cookie": [],
+									"body": null
+								}
+							]
+						},
+						{
+							"name": "run-payroll",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{server}}/periods/1/run-payroll",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"periods",
+										"1",
+										"run-payroll"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "run-payroll",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{server}}/periods/1/run-payroll",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"periods",
+												"1",
+												"run-payroll"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "0722c9e8-6109-4481-953e-040b7d9e67d4"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 13:05:50 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "135"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"data\": {\n        \"status\": \"Payroll processing started\",\n        \"job_id\": \"payroll_1_0722c9e8-6109-4481-953e-040b7d9e67d4\"\n    }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "payslip",
+					"item": [
+						{
+							"name": "generate",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer YOUR_JWT_TOKEN"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{server}}/payslip/summary/generate/1",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"payslip",
+										"summary",
+										"generate",
+										"1"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "generate",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer YOUR_JWT_TOKEN"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{server}}/payslip/summary/generate/1",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"payslip",
+												"summary",
+												"generate",
+												"1"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "63294031-9f9f-4ff6-b3ca-c447a1ef21e0"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 13:09:15 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "412"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"OK\",\n    \"data\": {\n        \"print_url\": \"http://localhost:9000/payslip/summary/print?token=YGqTmXYbZ3NDKmUAh5Sq-4Q7NtcJI127dcVUbYbGNbdHOZyxMS1Ij70Szxnjibrw_rT6ZpHnhn53lhwWUFmJ6xfYZUDPK_WNLix0wsuhs8eQaKbY8ek1v7XLfPw=\",\n        \"token\": \"YGqTmXYbZ3NDKmUAh5Sq-4Q7NtcJI127dcVUbYbGNbdHOZyxMS1Ij70Szxnjibrw_rT6ZpHnhn53lhwWUFmJ6xfYZUDPK_WNLix0wsuhs8eQaKbY8ek1v7XLfPw=\",\n        \"expires_at\": \"2025-07-24T20:14:15.9905118+07:00\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "summary-payslip",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{server}}/payslip/summary/print?token=YGqTmXYbZ3NDKmUAh5Sq-4Q7NtcJI127dcVUbYbGNbdHOZyxMS1Ij70Szxnjibrw_rT6ZpHnhn53lhwWUFmJ6xfYZUDPK_WNLix0wsuhs8eQaKbY8ek1v7XLfPw=",
+									"host": [
+										"{{server}}"
+									],
+									"path": [
+										"payslip",
+										"summary",
+										"print"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "YGqTmXYbZ3NDKmUAh5Sq-4Q7NtcJI127dcVUbYbGNbdHOZyxMS1Ij70Szxnjibrw_rT6ZpHnhn53lhwWUFmJ6xfYZUDPK_WNLix0wsuhs8eQaKbY8ek1v7XLfPw="
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "summary-payslip",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{server}}/payslip/summary/print?token=YGqTmXYbZ3NDKmUAh5Sq-4Q7NtcJI127dcVUbYbGNbdHOZyxMS1Ij70Szxnjibrw_rT6ZpHnhn53lhwWUFmJ6xfYZUDPK_WNLix0wsuhs8eQaKbY8ek1v7XLfPw=",
+											"host": [
+												"{{server}}"
+											],
+											"path": [
+												"payslip",
+												"summary",
+												"print"
+											],
+											"query": [
+												{
+													"key": "token",
+													"value": "YGqTmXYbZ3NDKmUAh5Sq-4Q7NtcJI127dcVUbYbGNbdHOZyxMS1Ij70Szxnjibrw_rT6ZpHnhn53lhwWUFmJ6xfYZUDPK_WNLix0wsuhs8eQaKbY8ek1v7XLfPw="
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "html",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "text/html; charset=UTF-8"
+										},
+										{
+											"key": "X-Request-Id",
+											"value": "cb32b1b6-9576-482e-8f78-e65a80ca475a"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 24 Jul 2025 13:09:50 GMT"
+										},
+										{
+											"key": "Transfer-Encoding",
+											"value": "chunked"
+										}
+									],
+									"cookie": [],
+									"body": "<!DOCTYPE html>\n<html lang=\"en\">\n    <head>\n        <meta charset=\"UTF-8\">\n        <title>Management Payslip Summary</title>\n        <style>\n    @media print {\n      body {\n        margin: 0;\n        -webkit-print-color-adjust: exact;\n      }\n    }\n\n    body {\n      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n      max-width: 800px;\n      margin: 40px auto;\n      padding: 20px;\n    }\n\n    h1, h2 {\n      text-align: center;\n      margin-bottom: 10px;\n    }\n\n    .section-title {\n      background-color: #f0f0f0;\n      padding: 8px;\n      font-weight: bold;\n      margin-top: 20px;\n    }\n\n    table {\n      width: 100%;\n      border-collapse: collapse;\n      margin-top: 10px;\n    }\n\n    th, td {\n      padding: 8px;\n      border: 1px solid #ccc;\n      text-align: left;\n    }\n\n    .right {\n      text-align: right;\n    }\n\n    .total-row {\n      font-weight: bold;\n      background-color: #f9f9f9;\n    }\n\n    .footer {\n      margin-top: 40px;\n      text-align: center;\n      font-size: 12px;\n      color: #666;\n    }\n  </style>\n    </head>\n    <body onload=\"window.print()\">\n        <h1>PT Laba Rugi</h1>\n        <h2>Management Payslip Summary</h2>\n        <p>\n            <strong>Period:</strong> January 2024\n        </p>\n        <div class=\"section-title\">Summary</div>\n        <table>\n            <tr>\n                <th>Description</th>\n                <th class=\"right\">Amount</th>\n            </tr>\n            <tr>\n                <td>Total Employees</td>\n                <td class=\"right\">100</td>\n            </tr>\n            <tr class=\"total-row\">\n                <td>Total Take Home Pay</td>\n                <td class=\"right\">Rp. 850.666,96</td>\n            </tr>\n        </table>\n        <div class=\"section-title\">Employee Take Home Pay List</div>\n        <table>\n            <tr>\n                <th>No</th>\n                <th>Employee Name</th>\n                <th class=\"right\">THP</th>\n            </tr>\n            <tr>\n                <td>1</td>\n                <td>abby_jakubowski</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>2</td>\n                <td>aglae_bauch</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>3</td>\n                <td>alex_nitzsche</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>4</td>\n                <td>alfonzo_quitzon</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>5</td>\n                <td>alford_spinka</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>6</td>\n                <td>alyson_hackett</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>7</td>\n                <td>amelia_grimes</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>8</td>\n                <td>amelie_dubuque</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>9</td>\n                <td>anabelle_welch</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>10</td>\n                <td>andre_schaefer</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>11</td>\n                <td>angie_armstrong</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>12</td>\n                <td>anne_kohler</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>13</td>\n                <td>annette_mcclure</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>14</td>\n                <td>antwon_jenkins</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>15</td>\n                <td>ardella_kilback</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>16</td>\n                <td>aron_bayer</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>17</td>\n                <td>ben_morar</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>18</td>\n                <td>berniece_goodwin</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>19</td>\n                <td>brant_bashirian</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>20</td>\n                <td>brent_labadie</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>21</td>\n                <td>candelario_nader</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>22</td>\n                <td>cecil_farrell</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>23</td>\n                <td>cedrick_nitzsche</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>24</td>\n                <td>chadrick_parisian</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>25</td>\n                <td>charley_connelly</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>26</td>\n                <td>charlotte_predovic</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>27</td>\n                <td>christina_lemke</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>28</td>\n                <td>citlalli_becker</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>29</td>\n                <td>danial_brekke</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>30</td>\n                <td>darrel_welch</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>31</td>\n                <td>dorthy_beier</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>32</td>\n                <td>ed_roberts</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>33</td>\n                <td>eleazar_kreiger</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>34</td>\n                <td>elias_zemlak</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>35</td>\n                <td>eric_murray</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>36</td>\n                <td>erling_upton</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>37</td>\n                <td>ernestina_bednar</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>38</td>\n                <td>ernesto_leffler</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>39</td>\n                <td>evans_vonrueden</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>40</td>\n                <td>filiberto_senger</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>41</td>\n                <td>freddie_bradtke</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>42</td>\n                <td>gabriella_ankunding</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>43</td>\n                <td>georgette_herzog</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>44</td>\n                <td>harmony_williamson</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>45</td>\n                <td>hattie_schuppe</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>46</td>\n                <td>helena_morar</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>47</td>\n                <td>herminia_streich</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>48</td>\n                <td>hilario_okuneva</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>49</td>\n                <td>irwin_weber</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>50</td>\n                <td>jamal_roob</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>51</td>\n                <td>jamie_nienow</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>52</td>\n                <td>jammie_labadie</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>53</td>\n                <td>jarrett_williamson</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>54</td>\n                <td>jedidiah_hermiston</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>55</td>\n                <td>jonatan_jacobson</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>56</td>\n                <td>jordon_osinski</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>57</td>\n                <td>jovany_bailey</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>58</td>\n                <td>katherine_shanahan</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>59</td>\n                <td>kevon_waelchi</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>60</td>\n                <td>kiana_bergstrom</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>61</td>\n                <td>kianna_hauck</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>62</td>\n                <td>lavinia_kunde</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>63</td>\n                <td>lera_kilback</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>64</td>\n                <td>lonny_hahn</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>65</td>\n                <td>maci_farrell</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>66</td>\n                <td>malika_wuckert</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>67</td>\n                <td>mariane_bashirian</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>68</td>\n                <td>marilie_dietrich</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>69</td>\n                <td>marvin_schaden</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>70</td>\n                <td>maxie_cummerata</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>71</td>\n                <td>melisa_metz</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>72</td>\n                <td>merl_prosacco</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>73</td>\n                <td>merlin_stokes</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>74</td>\n                <td>mikayla_hayes</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>75</td>\n                <td>monte_beer</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>76</td>\n                <td>monty_schulist</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>77</td>\n                <td>nash_nitzsche</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>78</td>\n                <td>noemie_prosacco</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>79</td>\n                <td>percy_robel</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>80</td>\n                <td>pete_jacobs</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>81</td>\n                <td>raegan_kutch</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>82</td>\n                <td>ralph_batz</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>83</td>\n                <td>reanna_gleichner</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>84</td>\n                <td>reva_fahey</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>85</td>\n                <td>rosalee_terry</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>86</td>\n                <td>roslyn_rowe</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>87</td>\n                <td>sallie_kemmer</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>88</td>\n                <td>samantha_kreiger</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>89</td>\n                <td>sarah_oberbrunner</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>90</td>\n                <td>shanie_glover</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>91</td>\n                <td>sheldon_waelchi</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>92</td>\n                <td>shyanne_gutmann</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>93</td>\n                <td>sidney_kessler</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>94</td>\n                <td>thaddeus_little</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>95</td>\n                <td>virginie_bernhard</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>96</td>\n                <td>wanda_hartmann</td>\n                <td class=\"right\">Rp. 850.666,96</td>\n            </tr>\n            <tr>\n                <td>97</td>\n                <td>webster_jacobson</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>98</td>\n                <td>wellington_lubowitz</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>99</td>\n                <td>yogesh_frami</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr>\n                <td>100</td>\n                <td>zella_daniel</td>\n                <td class=\"right\">Rp. 0,00</td>\n            </tr>\n            <tr class=\"total-row\">\n                <td colspan=\"2\">Total</td>\n                <td class=\"right\">Rp. 850.666,96</td>\n            </tr>\n        </table>\n        <div class=\"footer\">\n    This report was generated automatically and does not require a signature.\n  </div>\n    </body>\n</html>"
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "server",
+			"value": "http://localhost:1999",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTMzMzE2NzIsImlhdCI6MTc1MzI0NTI3Miwicm9sZSI6IiIsInVzZXJfaWQiOjYwMywidXNlcm5hbWUiOiJhZG1pbiJ9.Ym8uAtpC6HRVp3RzAZXBTXstTk0s_f2wmaDhW5yPwiw",
+			"type": "string"
+		}
+	]
+}
