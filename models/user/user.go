@@ -46,6 +46,7 @@ type (
 		Username  string    `json:"username" gorm:"column:username"`
 		Password  string    `json:"-" gorm:"column:password"`
 		Role      string    `json:"role" gorm:"column:roles"`
+		Salary    float64   `json:"salary" gorm:"column:salary;type:decimal(15,2);default:0.00"`
 		CreatedAt time.Time `json:"created_at" gorm:"column:created_at"`
 		UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at"`
 	}

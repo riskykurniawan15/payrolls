@@ -35,6 +35,9 @@ func Routers(dep *dep.Dependencies, jwtSecret string) *echo.Echo {
 		periods.GET("/:id", dep.PeriodHandlers.GetByID)
 		periods.PUT("/:id", dep.PeriodHandlers.Update)
 		periods.DELETE("/:id", dep.PeriodHandlers.Delete)
+
+		// Period detail routes
+		periods.POST("/:id/run-payroll", dep.PeriodDetailHandlers.RunPayroll)
 	}
 
 	// Attendance routes (for all authenticated users)

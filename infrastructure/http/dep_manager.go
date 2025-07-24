@@ -8,6 +8,7 @@ import (
 	"github.com/riskykurniawan15/payrolls/config"
 	healthRepositories "github.com/riskykurniawan15/payrolls/repositories/health"
 	periodRepositories "github.com/riskykurniawan15/payrolls/repositories/period"
+	periodDetailRepositories "github.com/riskykurniawan15/payrolls/repositories/period_detail"
 	userRepositories "github.com/riskykurniawan15/payrolls/repositories/user"
 	"github.com/riskykurniawan15/payrolls/utils/logger"
 	"gorm.io/gorm"
@@ -19,6 +20,7 @@ import (
 	healthServices "github.com/riskykurniawan15/payrolls/services/health"
 	overtimeServices "github.com/riskykurniawan15/payrolls/services/overtime"
 	periodServices "github.com/riskykurniawan15/payrolls/services/period"
+	periodDetailServices "github.com/riskykurniawan15/payrolls/services/period_detail"
 	reimbursementServices "github.com/riskykurniawan15/payrolls/services/reimbursement"
 	userServices "github.com/riskykurniawan15/payrolls/services/user"
 
@@ -26,6 +28,7 @@ import (
 	healthHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/health"
 	overtimeHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/overtime"
 	periodHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/period"
+	periodDetailHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/period_detail"
 	reimbursementHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/reimbursement"
 	userHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/user"
 )
@@ -34,6 +37,7 @@ type Dependencies struct {
 	HealthHandlers        healthHandlers.IHealthHandler
 	UserHandlers          userHandlers.IUserHandler
 	PeriodHandlers        periodHandlers.IPeriodHandler
+	PeriodDetailHandlers  periodDetailHandlers.IPeriodDetailHandler
 	AttendanceHandlers    attendanceHandlers.IAttendanceHandler
 	OvertimeHandlers      overtimeHandlers.IOvertimeHandler
 	ReimbursementHandlers reimbursementHandlers.IReimbursementHandler
@@ -53,6 +57,7 @@ var RepositorySet = wire.NewSet(
 	healthRepositories.NewHealthRepositories,
 	userRepositories.NewUserRepository,
 	periodRepositories.NewPeriodRepository,
+	periodDetailRepositories.NewPeriodDetailRepository,
 	attendanceRepositories.NewAttendanceRepository,
 	overtimeRepositories.NewOvertimeRepository,
 	reimbursementRepositories.NewReimbursementRepository,
@@ -62,6 +67,7 @@ var ServicesSet = wire.NewSet(
 	healthServices.NewHealthService,
 	userServices.NewUserService,
 	periodServices.NewPeriodService,
+	periodDetailServices.NewPeriodDetailService,
 	attendanceServices.NewAttendanceService,
 	overtimeServices.NewOvertimeService,
 	reimbursementServices.NewReimbursementService,
@@ -71,6 +77,7 @@ var HandlerSet = wire.NewSet(
 	healthHandlers.NewHealthHandlers,
 	userHandlers.NewUserHandlers,
 	periodHandlers.NewPeriodHandlers,
+	periodDetailHandlers.NewPeriodDetailHandlers,
 	attendanceHandlers.NewAttendanceHandlers,
 	overtimeHandlers.NewOvertimeHandlers,
 	reimbursementHandlers.NewReimbursementHandlers,

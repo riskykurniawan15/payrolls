@@ -16,8 +16,8 @@ type (
 		Update(ctx context.Context, id uint, updates map[string]interface{}) error
 		Delete(ctx context.Context, id uint) error
 		List(ctx context.Context, req overtime.ListOvertimesRequest, userID uint) (*overtime.ListOvertimesResponse, error)
-
 		GetTotalHoursByUserAndDate(ctx context.Context, userID uint, date time.Time) (float64, error)
+		GetByUserAndDateRange(ctx context.Context, userID uint, startDate, endDate time.Time) ([]overtime.Overtime, error)
 	}
 
 	OvertimeRepository struct {
@@ -130,6 +130,15 @@ func (r *OvertimeRepository) GetTotalHoursByUserAndDate(ctx context.Context, use
 		Scan(&totalHours).Error
 
 	return totalHours, err
+}
+
+func (r *OvertimeRepository) GetByUserAndDateRange(ctx context.Context, userID uint, startDate, endDate time.Time) ([]overtime.Overtime, error) {
+	var overtimes []overtime.Overtime
+	err := r.db.WithContext(ctx).
+		Where("user_id = ? AND overtimes_date BETWEEN ? AND ?", userID, startDate, endDate).
+		Order("overtimes_date ASC").
+		Find(&overtimes).Error
+	return overtimes, err
 }
 
 // Helper function to convert Overtime to OvertimeResponse

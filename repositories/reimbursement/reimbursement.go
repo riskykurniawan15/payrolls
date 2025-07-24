@@ -16,6 +16,7 @@ type (
 		Update(ctx context.Context, id uint, updates map[string]interface{}) error
 		Delete(ctx context.Context, id uint) error
 		List(ctx context.Context, req reimbursement.ListReimbursementsRequest, userID uint) (*reimbursement.ListReimbursementsResponse, error)
+		GetByUserAndDateRange(ctx context.Context, userID uint, startDate, endDate time.Time) ([]reimbursement.Reimbursement, error)
 	}
 
 	ReimbursementRepository struct {
@@ -114,6 +115,15 @@ func (r *ReimbursementRepository) List(ctx context.Context, req reimbursement.Li
 }
 
 // Helper function to convert Reimbursement to ReimbursementResponse
+func (r *ReimbursementRepository) GetByUserAndDateRange(ctx context.Context, userID uint, startDate, endDate time.Time) ([]reimbursement.Reimbursement, error) {
+	var reimbursements []reimbursement.Reimbursement
+	err := r.db.WithContext(ctx).
+		Where("user_id = ? AND date BETWEEN ? AND ?", userID, startDate, endDate).
+		Order("date ASC").
+		Find(&reimbursements).Error
+	return reimbursements, err
+}
+
 func (r *ReimbursementRepository) toResponse(reimb reimbursement.Reimbursement) reimbursement.ReimbursementResponse {
 	return reimbursement.ReimbursementResponse{
 		ID:          reimb.ID,
