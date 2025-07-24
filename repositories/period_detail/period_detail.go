@@ -17,6 +17,7 @@ type (
 		GetByPeriodAndUser(ctx context.Context, periodID, userID uint) (*period_detail.PeriodDetail, error)
 		Update(ctx context.Context, id uint, updates map[string]interface{}) error
 		Delete(ctx context.Context, id uint) error
+		DeleteByPeriodID(ctx context.Context, periodID uint) error
 		GetUsersByBatch(ctx context.Context, lastID uint, limit int) ([]uint, error)
 		CreateBatch(ctx context.Context, periodDetails []period_detail.PeriodDetail) error
 	}
@@ -82,11 +83,17 @@ func (repo PeriodDetailRepository) Delete(ctx context.Context, id uint) error {
 	return repo.getInstanceDB(ctx).WithContext(ctxWT).Delete(&period_detail.PeriodDetail{}, id).Error
 }
 
+func (repo PeriodDetailRepository) DeleteByPeriodID(ctx context.Context, periodID uint) error {
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	return repo.getInstanceDB(ctx).WithContext(ctxWT).Delete(&period_detail.PeriodDetail{}, "periods_id = ?", periodID).Error
+}
+
 func (repo PeriodDetailRepository) GetUsersByBatch(ctx context.Context, lastID uint, limit int) ([]uint, error) {
 	var userIDs []uint
 	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
 	defer cancel()
-	query := repo.getInstanceDB(ctx).WithContext(ctxWT).Table("users").Select("id").Where("role = ?", "employee")
+	query := repo.getInstanceDB(ctx).WithContext(ctxWT).Table("users").Select("id").Where("roles = ?", constant.EmployeeRole)
 
 	if lastID > 0 {
 		query = query.Where("id > ?", lastID)

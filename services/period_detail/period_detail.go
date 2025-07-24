@@ -22,7 +22,7 @@ import (
 
 type (
 	IPeriodDetailService interface {
-		RunPayroll(ctx context.Context, periodID uint, req period_detail.RunPayrollRequest, userID uint) (*period_detail.RunPayrollResponse, error)
+		RunPayroll(ctx context.Context, periodID uint, userID uint) (*period_detail.RunPayrollResponse, error)
 	}
 
 	PeriodDetailService struct {
@@ -86,7 +86,7 @@ func NewPeriodDetailService(
 	}
 }
 
-func (s *PeriodDetailService) RunPayroll(ctx context.Context, periodID uint, req period_detail.RunPayrollRequest, userID uint) (*period_detail.RunPayrollResponse, error) {
+func (s *PeriodDetailService) RunPayroll(ctx context.Context, periodID, userID uint) (*period_detail.RunPayrollResponse, error) {
 	requestID := middleware.GetRequestIDFromContext(ctx)
 	s.logger.InfoT("processing run payroll request", requestID, map[string]interface{}{
 		"period_id": periodID,
@@ -115,7 +115,7 @@ func (s *PeriodDetailService) RunPayroll(ctx context.Context, periodID uint, req
 	// Update period status to processing
 	err = s.periodRepo.Update(ctx, periodID, map[string]interface{}{
 		"status":                  constant.StatusProcessing,
-		"user_executable_payroll": req.UserExecutablePayroll,
+		"user_executable_payroll": userID,
 		"payroll_date":            time.Now(),
 		"updated_by":              userID,
 	})
@@ -131,7 +131,7 @@ func (s *PeriodDetailService) RunPayroll(ctx context.Context, periodID uint, req
 	jobID := fmt.Sprintf("payroll_%d_%d", periodID, time.Now().Unix())
 
 	// Start background processing
-	go s.processPayrollBackground(context.Background(), periodID, periodData, req.UserExecutablePayroll, jobID)
+	go s.processPayrollBackground(context.Background(), periodID, periodData, userID, jobID)
 
 	s.logger.InfoT("payroll job started", requestID, map[string]interface{}{
 		"period_id": periodID,
@@ -139,8 +139,8 @@ func (s *PeriodDetailService) RunPayroll(ctx context.Context, periodID uint, req
 	})
 
 	return &period_detail.RunPayrollResponse{
-		Message: "Payroll processing started",
-		JobID:   jobID,
+		Status: "Payroll processing started",
+		JobID:  jobID,
 	}, nil
 }
 
@@ -178,6 +178,8 @@ func (s *PeriodDetailService) processPayrollBackground(ctx context.Context, peri
 	lastID := uint(0)
 	batchSize := 50
 
+	s.periodDetailRepo.DeleteByPeriodID(ctx, periodID)
+
 	for {
 		userIDs, err := s.periodDetailRepo.GetUsersByBatch(ctx, lastID, batchSize)
 		if err != nil {
@@ -213,67 +215,65 @@ func (s *PeriodDetailService) processPayrollBackground(ctx context.Context, peri
 
 func (s *PeriodDetailService) processUserBatch(ctx context.Context, periodID uint, userIDs []uint, startDate, endDate time.Time, userExecutablePayroll uint, requestID string) error {
 	// Use database transaction
-	return s.db.Transaction(func(tx *gorm.DB) error {
-		var periodDetails []period_detail.PeriodDetail
+	var periodDetails []period_detail.PeriodDetail
 
-		for _, userID := range userIDs {
-			payrollData, err := s.calculatePayroll(ctx, userID, startDate, endDate, requestID)
-			if err != nil {
-				s.logger.ErrorT("failed to calculate payroll for user", requestID, map[string]interface{}{
-					"error":   err.Error(),
-					"user_id": userID,
-				})
-				continue
-			}
-
-			// Convert overtime data to JSON
-			overtimeJSON, err := json.Marshal(payrollData.Overtime)
-			if err != nil {
-				s.logger.ErrorT("failed to marshal overtime data", requestID, map[string]interface{}{
-					"error":   err.Error(),
-					"user_id": userID,
-				})
-				continue
-			}
-
-			// Convert reimbursement data to JSON
-			reimbursementJSON, err := json.Marshal(payrollData.Reimbursement)
-			if err != nil {
-				s.logger.ErrorT("failed to marshal reimbursement data", requestID, map[string]interface{}{
-					"error":   err.Error(),
-					"user_id": userID,
-				})
-				continue
-			}
-
-			periodDetail := period_detail.PeriodDetail{
-				PeriodsID:           periodID,
-				UserID:              userID,
-				DailyRate:           payrollData.DailyRate,
-				TotalWorking:        payrollData.TotalWorking,
-				AmountSalary:        payrollData.AmountSalary,
-				Overtime:            (*period_detail.JSON)(&overtimeJSON),
-				AmountOvertime:      payrollData.AmountOvertime,
-				Reimbursement:       (*period_detail.JSON)(&reimbursementJSON),
-				AmountReimbursement: payrollData.AmountReimbursement,
-				TakeHomePay:         payrollData.TakeHomePay,
-				CreatedBy:           userExecutablePayroll,
-				CreatedAt:           time.Now(),
-			}
-
-			periodDetails = append(periodDetails, periodDetail)
+	for _, userID := range userIDs {
+		payrollData, err := s.calculatePayroll(ctx, userID, startDate, endDate, requestID)
+		if err != nil {
+			s.logger.ErrorT("failed to calculate payroll for user", requestID, map[string]interface{}{
+				"error":   err.Error(),
+				"user_id": userID,
+			})
+			continue
 		}
 
-		// Create batch records
-		if len(periodDetails) > 0 {
-			err := s.periodDetailRepo.CreateBatch(ctx, periodDetails)
-			if err != nil {
-				return fmt.Errorf("failed to create period details batch: %w", err)
-			}
+		// Convert overtime data to JSON
+		overtimeJSON, err := json.Marshal(payrollData.Overtime)
+		if err != nil {
+			s.logger.ErrorT("failed to marshal overtime data", requestID, map[string]interface{}{
+				"error":   err.Error(),
+				"user_id": userID,
+			})
+			continue
 		}
 
-		return nil
-	})
+		// Convert reimbursement data to JSON
+		reimbursementJSON, err := json.Marshal(payrollData.Reimbursement)
+		if err != nil {
+			s.logger.ErrorT("failed to marshal reimbursement data", requestID, map[string]interface{}{
+				"error":   err.Error(),
+				"user_id": userID,
+			})
+			continue
+		}
+
+		periodDetail := period_detail.PeriodDetail{
+			PeriodsID:           periodID,
+			UserID:              userID,
+			DailyRate:           payrollData.DailyRate,
+			TotalWorking:        payrollData.TotalWorking,
+			AmountSalary:        payrollData.AmountSalary,
+			Overtime:            (*period_detail.JSON)(&overtimeJSON),
+			AmountOvertime:      payrollData.AmountOvertime,
+			Reimbursement:       (*period_detail.JSON)(&reimbursementJSON),
+			AmountReimbursement: payrollData.AmountReimbursement,
+			TakeHomePay:         payrollData.TakeHomePay,
+			CreatedBy:           userExecutablePayroll,
+			CreatedAt:           time.Now(),
+		}
+
+		periodDetails = append(periodDetails, periodDetail)
+	}
+
+	// Create batch records
+	if len(periodDetails) > 0 {
+		err := s.periodDetailRepo.CreateBatch(ctx, periodDetails)
+		if err != nil {
+			return fmt.Errorf("failed to create period details batch: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func (s *PeriodDetailService) calculatePayroll(ctx context.Context, userID uint, startDate, endDate time.Time, requestID string) (*PayrollData, error) {
@@ -283,21 +283,30 @@ func (s *PeriodDetailService) calculatePayroll(ctx context.Context, userID uint,
 		return nil, fmt.Errorf("failed to get user data: %w", err)
 	}
 
-	// Calculate working days (weekdays only)
-	totalWorking := 0
+	// Calculate working days from attendance data (weekdays only)
+	payDay, totalWorking := 0, 0
 	currentDate := startDate
 	for currentDate.Before(endDate) || currentDate.Equal(endDate) {
 		if currentDate.Weekday() != time.Saturday && currentDate.Weekday() != time.Sunday {
-			totalWorking++
+			// Check if user has checked in attendance for this date
+			hasCheckedIn, err := s.hasCheckedInAttendance(ctx, userID, currentDate)
+			if err != nil {
+				s.logger.ErrorT("failed to check attendance", requestID, map[string]interface{}{
+					"error":   err.Error(),
+					"user_id": userID,
+					"date":    currentDate.Format("2006-01-02"),
+				})
+			} else if hasCheckedIn {
+				totalWorking++
+			}
+			payDay++
 		}
 		currentDate = currentDate.AddDate(0, 0, 1)
 	}
 
 	// Calculate daily rate (salary / working days)
 	dailyRate := float64(0)
-	if totalWorking > 0 {
-		dailyRate = userData.Salary / float64(totalWorking)
-	}
+	dailyRate = userData.Salary / float64(payDay)
 
 	// Calculate salary amount
 	amountSalary := dailyRate * float64(totalWorking)
@@ -391,4 +400,21 @@ func (s *PeriodDetailService) calculateReimbursement(ctx context.Context, userID
 	}
 
 	return reimbursementData, totalAmount, nil
+}
+
+func (s *PeriodDetailService) hasCheckedInAttendance(ctx context.Context, userID uint, date time.Time) (bool, error) {
+	// Get attendance record for the specific date
+	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+
+	attendance, err := s.attendanceRepo.GetByUserAndDate(ctx, userID, startOfDay)
+	if err != nil {
+		// If no attendance found, return false (not an error)
+		if err.Error() == "record not found" {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to get attendance data: %w", err)
+	}
+
+	// Check if attendance record exists (has check-in)
+	return attendance != nil, nil
 }

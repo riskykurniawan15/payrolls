@@ -29,15 +29,10 @@ type (
 	// JSON type for handling JSONB fields
 	JSON json.RawMessage
 
-	// RunPayrollRequest for running payroll
-	RunPayrollRequest struct {
-		UserExecutablePayroll uint `json:"user_executable_payroll" validate:"required"`
-	}
-
 	// RunPayrollResponse for API response
 	RunPayrollResponse struct {
-		Message string `json:"message"`
-		JobID   string `json:"job_id"`
+		Status string `json:"status"`
+		JobID  string `json:"job_id"`
 	}
 )
 

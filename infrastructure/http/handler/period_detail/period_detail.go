@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"github.com/riskykurniawan15/payrolls/infrastructure/http/entities"
 	"github.com/riskykurniawan15/payrolls/infrastructure/http/middleware"
-	periodDetailModel "github.com/riskykurniawan15/payrolls/models/period_detail"
 	periodDetailService "github.com/riskykurniawan15/payrolls/services/period_detail"
 	"github.com/riskykurniawan15/payrolls/utils/logger"
 )
@@ -37,25 +37,9 @@ func (handler PeriodDetailHandler) RunPayroll(ctx echo.Context) error {
 	periodIDStr := ctx.Param("id")
 	periodID, err := strconv.ParseUint(periodIDStr, 10, 32)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]interface{}{
-			"message": "Invalid period ID",
-		})
-	}
-
-	// Bind request body
-	var req periodDetailModel.RunPayrollRequest
-	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]interface{}{
-			"message": "Invalid request body",
-		})
-	}
-
-	// Validate request
-	if err := ctx.Validate(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]interface{}{
-			"message": "Validation failed",
-			"errors":  err,
-		})
+		return ctx.JSON(http.StatusBadRequest, entities.ResponseFormater(http.StatusBadRequest, map[string]interface{}{
+			"error": "Invalid ID format",
+		}))
 	}
 
 	// Get user ID from middleware
@@ -63,12 +47,14 @@ func (handler PeriodDetailHandler) RunPayroll(ctx echo.Context) error {
 
 	// Call service
 	serviceCtx := ctx.Request().Context()
-	response, err := handler.periodDetailServices.RunPayroll(serviceCtx, uint(periodID), req, userID)
+	response, err := handler.periodDetailServices.RunPayroll(serviceCtx, uint(periodID), userID)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"message": err.Error(),
-		})
+		return ctx.JSON(http.StatusInternalServerError, entities.ResponseFormater(http.StatusBadRequest, map[string]interface{}{
+			"error": err.Error(),
+		}))
 	}
 
-	return ctx.JSON(http.StatusOK, response)
+	return ctx.JSON(http.StatusOK, entities.ResponseFormater(http.StatusOK, map[string]interface{}{
+		"data": response,
+	}))
 }
