@@ -29,7 +29,7 @@ func NewUserRepository(db *gorm.DB) IUserRepository {
 func (repo UserRepository) getInstanceDB(ctx context.Context) *gorm.DB {
 	tx, ok := ctx.Value(constant.TransactionKey).(*gorm.DB)
 	if !ok {
-		return repo.getInstanceDB(ctx)
+		return repo.db
 	}
 	return tx
 }

@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/labstack/echo/v4"
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	dep "github.com/riskykurniawan15/payrolls/infrastructure/http"
 	"github.com/riskykurniawan15/payrolls/infrastructure/http/middleware"
 	"github.com/riskykurniawan15/payrolls/utils/validator"
@@ -15,6 +16,7 @@ func Routers(dep *dep.Dependencies, jwtSecret string) *echo.Echo {
 
 	// Add request ID middleware globally
 	engine.Use(middleware.RequestIDMiddleware())
+	engine.Use(echoMiddleware.Recover())
 
 	// Public routes
 	engine.GET("/health", dep.HealthHandlers.Metric)
