@@ -18,6 +18,10 @@ func Routers(dep *dep.Dependencies, jwtSecret string) *echo.Echo {
 	engine.Use(middleware.RequestIDMiddleware())
 	engine.Use(echoMiddleware.Recover())
 
+	// Add audit trail middleware globally
+	auditTrailMiddleware := middleware.NewAuditTrailMiddleware(dep.AuditTrailService)
+	engine.Use(auditTrailMiddleware.AuditTrail())
+
 	// Public routes
 	engine.GET("/health", dep.HealthHandlers.Metric)
 	engine.POST("/auth/login", dep.UserHandlers.Login)

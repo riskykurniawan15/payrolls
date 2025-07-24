@@ -18,6 +18,7 @@ import (
 	reimbursement3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/reimbursement"
 	user3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/user"
 	"github.com/riskykurniawan15/payrolls/repositories/attendance"
+	"github.com/riskykurniawan15/payrolls/repositories/audit_trail"
 	"github.com/riskykurniawan15/payrolls/repositories/health"
 	"github.com/riskykurniawan15/payrolls/repositories/overtime"
 	"github.com/riskykurniawan15/payrolls/repositories/period"
@@ -25,6 +26,7 @@ import (
 	"github.com/riskykurniawan15/payrolls/repositories/reimbursement"
 	"github.com/riskykurniawan15/payrolls/repositories/user"
 	attendance2 "github.com/riskykurniawan15/payrolls/services/attendance"
+	audit_trail2 "github.com/riskykurniawan15/payrolls/services/audit_trail"
 	health2 "github.com/riskykurniawan15/payrolls/services/health"
 	overtime2 "github.com/riskykurniawan15/payrolls/services/overtime"
 	"github.com/riskykurniawan15/payrolls/services/payslip"
@@ -62,6 +64,8 @@ func InitializeHandler(db *gorm.DB, cfg config.Config, logger2 logger.Logger) *D
 	iReimbursementHandler := reimbursement3.NewReimbursementHandlers(logger2, iReimbursementService)
 	iPayslipService := payslip.NewPayslipService(logger2, iPeriodDetailRepository, cfg)
 	iPayslipHandler := payslip2.NewPayslipHandlers(logger2, iPayslipService)
+	iAuditTrailRepository := audit_trail.NewAuditTrailRepository(db)
+	iAuditTrailService := audit_trail2.NewAuditTrailService(iAuditTrailRepository)
 	dependencies := &Dependencies{
 		HealthHandlers:        iHealthHandler,
 		UserHandlers:          iUserHandler,
@@ -71,6 +75,7 @@ func InitializeHandler(db *gorm.DB, cfg config.Config, logger2 logger.Logger) *D
 		OvertimeHandlers:      iOvertimeHandler,
 		ReimbursementHandlers: iReimbursementHandler,
 		PayslipHandlers:       iPayslipHandler,
+		AuditTrailService:     iAuditTrailService,
 	}
 	return dependencies
 }
@@ -86,10 +91,11 @@ type Dependencies struct {
 	OvertimeHandlers      overtime3.IOvertimeHandler
 	ReimbursementHandlers reimbursement3.IReimbursementHandler
 	PayslipHandlers       payslip2.IPayslipHandler
+	AuditTrailService     audit_trail2.IAuditTrailService
 }
 
-var RepositorySet = wire.NewSet(health.NewHealthRepositories, user.NewUserRepository, period.NewPeriodRepository, period_detail.NewPeriodDetailRepository, attendance.NewAttendanceRepository, overtime.NewOvertimeRepository, reimbursement.NewReimbursementRepository)
+var RepositorySet = wire.NewSet(health.NewHealthRepositories, user.NewUserRepository, period.NewPeriodRepository, period_detail.NewPeriodDetailRepository, attendance.NewAttendanceRepository, audit_trail.NewAuditTrailRepository, overtime.NewOvertimeRepository, reimbursement.NewReimbursementRepository)
 
-var ServicesSet = wire.NewSet(health2.NewHealthService, user2.NewUserService, period2.NewPeriodService, period_detail2.NewPeriodDetailService, attendance2.NewAttendanceService, overtime2.NewOvertimeService, reimbursement2.NewReimbursementService, payslip.NewPayslipService)
+var ServicesSet = wire.NewSet(health2.NewHealthService, user2.NewUserService, period2.NewPeriodService, period_detail2.NewPeriodDetailService, attendance2.NewAttendanceService, audit_trail2.NewAuditTrailService, overtime2.NewOvertimeService, reimbursement2.NewReimbursementService, payslip.NewPayslipService)
 
 var HandlerSet = wire.NewSet(health3.NewHealthHandlers, user3.NewUserHandlers, period3.NewPeriodHandlers, period_detail3.NewPeriodDetailHandlers, attendance3.NewAttendanceHandlers, overtime3.NewOvertimeHandlers, reimbursement3.NewReimbursementHandlers, payslip2.NewPayslipHandlers)
