@@ -359,6 +359,7 @@ payrolls/
 - Semua endpoint (kecuali `/auth/login` dan `/health`) memerlukan JWT token
 - Token harus dikirim dalam header: `Authorization: Bearer YOUR_JWT_TOKEN`
 - Token expired dalam 24 jam (dapat dikonfigurasi)
+- Password default adalah username
 
 ### Error Response Format
 ```json
