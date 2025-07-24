@@ -393,10 +393,6 @@ func (handler PayslipHandler) generatePayslipSummaryHTML(data *payslip.PayslipSu
       <td>Total Employees</td>
       <td class="right">{{.TotalEmployees}}</td>
     </tr>
-    <tr>
-      <td>Total Working Days</td>
-      <td class="right">{{.TotalWorkingDays}}</td>
-    </tr>
     <tr class="total-row">
       <td>Total Take Home Pay</td>
       <td class="right">{{formatRupiah .TotalTakeHomePay}}</td>
