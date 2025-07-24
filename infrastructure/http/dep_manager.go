@@ -7,6 +7,7 @@ import (
 	"github.com/google/wire"
 	"github.com/riskykurniawan15/payrolls/config"
 	healthRepositories "github.com/riskykurniawan15/payrolls/repositories/health"
+	instanceRepositories "github.com/riskykurniawan15/payrolls/repositories/instance"
 	periodRepositories "github.com/riskykurniawan15/payrolls/repositories/period"
 	periodDetailRepositories "github.com/riskykurniawan15/payrolls/repositories/period_detail"
 	userRepositories "github.com/riskykurniawan15/payrolls/repositories/user"
@@ -68,6 +69,7 @@ var RepositorySet = wire.NewSet(
 	auditTrailRepositories.NewAuditTrailRepository,
 	overtimeRepositories.NewOvertimeRepository,
 	reimbursementRepositories.NewReimbursementRepository,
+	instanceRepositories.NewInstanceRepository,
 )
 
 var ServicesSet = wire.NewSet(

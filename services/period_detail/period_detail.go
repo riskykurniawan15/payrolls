@@ -11,6 +11,7 @@ import (
 	"github.com/riskykurniawan15/payrolls/models/period"
 	"github.com/riskykurniawan15/payrolls/models/period_detail"
 	attendanceRepo "github.com/riskykurniawan15/payrolls/repositories/attendance"
+	instanceRepo "github.com/riskykurniawan15/payrolls/repositories/instance"
 	overtimeRepo "github.com/riskykurniawan15/payrolls/repositories/overtime"
 	periodRepo "github.com/riskykurniawan15/payrolls/repositories/period"
 	periodDetailRepo "github.com/riskykurniawan15/payrolls/repositories/period_detail"
@@ -32,6 +33,7 @@ type (
 		attendanceRepo    attendanceRepo.IAttendanceRepository
 		overtimeRepo      overtimeRepo.IOvertimeRepository
 		reimbursementRepo reimbursementRepo.IReimbursementRepository
+		instanceRepo      instanceRepo.IInstanceRepository
 	}
 
 	// PayrollData for storing calculation results
@@ -70,6 +72,7 @@ func NewPeriodDetailService(
 	attendanceRepo attendanceRepo.IAttendanceRepository,
 	overtimeRepo overtimeRepo.IOvertimeRepository,
 	reimbursementRepo reimbursementRepo.IReimbursementRepository,
+	instanceRepo instanceRepo.IInstanceRepository,
 ) IPeriodDetailService {
 	return &PeriodDetailService{
 		logger:            logger,
@@ -79,6 +82,7 @@ func NewPeriodDetailService(
 		attendanceRepo:    attendanceRepo,
 		overtimeRepo:      overtimeRepo,
 		reimbursementRepo: reimbursementRepo,
+		instanceRepo:      instanceRepo,
 	}
 }
 
@@ -140,17 +144,27 @@ func (s *PeriodDetailService) RunPayroll(ctx context.Context, periodID, userID u
 	}, nil
 }
 
-func (s *PeriodDetailService) processPayrollBackground(ctx context.Context, periodID uint, periodData *period.Period, userExecutablePayroll uint, jobID string) {
+func (s *PeriodDetailService) processPayrollBackground(c context.Context, periodID uint, periodData *period.Period, userExecutablePayroll uint, jobID string) {
 	requestID := fmt.Sprintf("bg_%s", jobID)
+	status := constant.StatusFailed
 	s.logger.InfoT("starting background payroll processing", requestID, map[string]interface{}{
 		"period_id": periodID,
 		"job_id":    jobID,
 	})
 
+	ctx, tx, err := s.instanceRepo.BeginTransactionWithContext(c)
+	if err != nil {
+		s.logger.ErrorT("failed to begin transaction", requestID, map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+	defer tx.Rollback()
+
 	defer func() {
 		// Update period status to completed
 		err := s.periodRepo.Update(ctx, periodID, map[string]interface{}{
-			"status":     constant.StatusCompleted,
+			"status":     status,
 			"updated_by": userExecutablePayroll,
 		})
 		if err != nil {
@@ -163,6 +177,10 @@ func (s *PeriodDetailService) processPayrollBackground(ctx context.Context, peri
 				"period_id": periodID,
 				"job_id":    jobID,
 			})
+		}
+
+		if status == constant.StatusCompleted {
+			tx.Commit()
 		}
 	}()
 
@@ -207,6 +225,8 @@ func (s *PeriodDetailService) processPayrollBackground(ctx context.Context, peri
 			"last_id":    lastID,
 		})
 	}
+
+	status = constant.StatusCompleted
 }
 
 func (s *PeriodDetailService) processUserBatch(ctx context.Context, periodID uint, userIDs []uint, startDate, endDate time.Time, userExecutablePayroll uint, requestID string) error {

@@ -20,6 +20,7 @@ import (
 	"github.com/riskykurniawan15/payrolls/repositories/attendance"
 	"github.com/riskykurniawan15/payrolls/repositories/audit_trail"
 	"github.com/riskykurniawan15/payrolls/repositories/health"
+	"github.com/riskykurniawan15/payrolls/repositories/instance"
 	"github.com/riskykurniawan15/payrolls/repositories/overtime"
 	"github.com/riskykurniawan15/payrolls/repositories/period"
 	"github.com/riskykurniawan15/payrolls/repositories/period_detail"
@@ -54,7 +55,8 @@ func InitializeHandler(db *gorm.DB, cfg config.Config, logger2 logger.Logger) *D
 	iAttendanceRepository := attendance.NewAttendanceRepository(db)
 	iOvertimeRepository := overtime.NewOvertimeRepository(db)
 	iReimbursementRepository := reimbursement.NewReimbursementRepository(db)
-	iPeriodDetailService := period_detail2.NewPeriodDetailService(logger2, iPeriodDetailRepository, iPeriodRepository, iUserRepository, iAttendanceRepository, iOvertimeRepository, iReimbursementRepository)
+	iInstanceRepository := instance.NewInstanceRepository(db)
+	iPeriodDetailService := period_detail2.NewPeriodDetailService(logger2, iPeriodDetailRepository, iPeriodRepository, iUserRepository, iAttendanceRepository, iOvertimeRepository, iReimbursementRepository, iInstanceRepository)
 	iPeriodDetailHandler := period_detail3.NewPeriodDetailHandlers(iPeriodDetailService, logger2)
 	iAttendanceService := attendance2.NewAttendanceService(logger2, iAttendanceRepository)
 	iAttendanceHandler := attendance3.NewAttendanceHandlers(logger2, iAttendanceService)
@@ -94,7 +96,7 @@ type Dependencies struct {
 	AuditTrailService     audit_trail2.IAuditTrailService
 }
 
-var RepositorySet = wire.NewSet(health.NewHealthRepositories, user.NewUserRepository, period.NewPeriodRepository, period_detail.NewPeriodDetailRepository, attendance.NewAttendanceRepository, audit_trail.NewAuditTrailRepository, overtime.NewOvertimeRepository, reimbursement.NewReimbursementRepository)
+var RepositorySet = wire.NewSet(health.NewHealthRepositories, user.NewUserRepository, period.NewPeriodRepository, period_detail.NewPeriodDetailRepository, attendance.NewAttendanceRepository, audit_trail.NewAuditTrailRepository, overtime.NewOvertimeRepository, reimbursement.NewReimbursementRepository, instance.NewInstanceRepository)
 
 var ServicesSet = wire.NewSet(health2.NewHealthService, user2.NewUserService, period2.NewPeriodService, period_detail2.NewPeriodDetailService, attendance2.NewAttendanceService, audit_trail2.NewAuditTrailService, overtime2.NewOvertimeService, reimbursement2.NewReimbursementService, payslip.NewPayslipService)
 
