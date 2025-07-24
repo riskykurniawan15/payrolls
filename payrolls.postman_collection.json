@@ -1763,7 +1763,8 @@
 									"variable": [
 										{
 											"key": "id",
-											"value": "1101"
+											"value": "1101",
+											"description": "id detail periode"
 										}
 									]
 								}
@@ -2414,7 +2415,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{server}}/payslip/summary/generate/1",
+									"raw": "{{server}}/payslip/summary/generate/:id",
 									"host": [
 										"{{server}}"
 									],
@@ -2422,7 +2423,14 @@
 										"payslip",
 										"summary",
 										"generate",
-										"1"
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1",
+											"description": "id periode"
+										}
 									]
 								}
 							},

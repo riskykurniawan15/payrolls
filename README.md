@@ -293,7 +293,7 @@ payrolls/
 - `GET /attendances` - Get user attendances
 - `GET /attendances/:id` - Get attendance by ID
 - `POST /attendances/check-in` - Check in
-- `POST /attendances/check-out` - Check out
+- `POST /attendances/check-out` - Check out (only latest record)
 - `POST /attendances/check-out/:id` - Check out by ID
 
 ### Overtime (Employee only)
@@ -311,11 +311,13 @@ payrolls/
 - `DELETE /reimbursements/:id` - Delete reimbursement
 
 ### Payslip (Employee only)
-- `GET /payslips` - List user payslips
-- `POST /payslips/:id/generate` - Generate payslip
-- `GET /payslips/print?token=xxx` - Print payslip
-- `POST /payslips/:id/summary` - Generate payslip summary
-- `GET /payslips/summary/print?token=xxx` - Print payslip summary
+- `GET /payslip` - List user payslips
+- `POST /payslip/generate/:id` - Generate payslip
+- `GET /payslip/print?token=xxx` - Print payslip
+
+### Payslip (Admin only)
+- `GET /payslip/summary/generate/:id` - Generate summary payslip
+- `GET /payslip/summary/print?token=xxx` - Generate payslip summary
 
 ## 📝 Catatan Penggunaan API
 
@@ -426,3 +428,8 @@ logger/
 4. **JWT Error**
    - Pastikan `JWT_SECRET_KEY` sudah diatur
    - Periksa format token di header Authorization
+
+## 📮 Import ke Postman
+Klik tombol di bawah untuk langsung import collection ke Postman:
+
+[![Import ke Postman](https://run.pstmn.io/button.svg)](https://raw.githubusercontent.com/riskykurniawan15/payrolls/refs/heads/main/payrolls.postman_collection.json)
