@@ -57,5 +57,15 @@ func Routers(dep *dep.Dependencies, jwtSecret string) *echo.Echo {
 		overtimes.DELETE("/:id", dep.OvertimeHandlers.Delete)
 	}
 
+	// Reimbursement routes (for all authenticated users)
+	reimbursements := engine.Group("/reimbursements", middleware.JWTMiddleware(jwtConfig), middleware.EmployeeOnlyMiddleware())
+	{
+		reimbursements.POST("", dep.ReimbursementHandlers.Create)
+		reimbursements.GET("", dep.ReimbursementHandlers.List)
+		reimbursements.GET("/:id", dep.ReimbursementHandlers.GetByID)
+		reimbursements.PUT("/:id", dep.ReimbursementHandlers.Update)
+		reimbursements.DELETE("/:id", dep.ReimbursementHandlers.Delete)
+	}
+
 	return engine
 }

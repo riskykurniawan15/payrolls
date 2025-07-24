@@ -14,25 +14,29 @@ import (
 
 	attendanceRepositories "github.com/riskykurniawan15/payrolls/repositories/attendance"
 	overtimeRepositories "github.com/riskykurniawan15/payrolls/repositories/overtime"
+	reimbursementRepositories "github.com/riskykurniawan15/payrolls/repositories/reimbursement"
 	attendanceServices "github.com/riskykurniawan15/payrolls/services/attendance"
 	healthServices "github.com/riskykurniawan15/payrolls/services/health"
 	overtimeServices "github.com/riskykurniawan15/payrolls/services/overtime"
 	periodServices "github.com/riskykurniawan15/payrolls/services/period"
+	reimbursementServices "github.com/riskykurniawan15/payrolls/services/reimbursement"
 	userServices "github.com/riskykurniawan15/payrolls/services/user"
 
 	attendanceHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/attendance"
 	healthHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/health"
 	overtimeHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/overtime"
 	periodHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/period"
+	reimbursementHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/reimbursement"
 	userHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/user"
 )
 
 type Dependencies struct {
-	HealthHandlers     healthHandlers.IHealthHandler
-	UserHandlers       userHandlers.IUserHandler
-	PeriodHandlers     periodHandlers.IPeriodHandler
-	AttendanceHandlers attendanceHandlers.IAttendanceHandler
-	OvertimeHandlers   overtimeHandlers.IOvertimeHandler
+	HealthHandlers        healthHandlers.IHealthHandler
+	UserHandlers          userHandlers.IUserHandler
+	PeriodHandlers        periodHandlers.IPeriodHandler
+	AttendanceHandlers    attendanceHandlers.IAttendanceHandler
+	OvertimeHandlers      overtimeHandlers.IOvertimeHandler
+	ReimbursementHandlers reimbursementHandlers.IReimbursementHandler
 }
 
 func InitializeHandler(db *gorm.DB, cfg config.Config, logger logger.Logger) *Dependencies {
@@ -51,6 +55,7 @@ var RepositorySet = wire.NewSet(
 	periodRepositories.NewPeriodRepository,
 	attendanceRepositories.NewAttendanceRepository,
 	overtimeRepositories.NewOvertimeRepository,
+	reimbursementRepositories.NewReimbursementRepository,
 )
 
 var ServicesSet = wire.NewSet(
@@ -59,6 +64,7 @@ var ServicesSet = wire.NewSet(
 	periodServices.NewPeriodService,
 	attendanceServices.NewAttendanceService,
 	overtimeServices.NewOvertimeService,
+	reimbursementServices.NewReimbursementService,
 )
 
 var HandlerSet = wire.NewSet(
@@ -67,4 +73,5 @@ var HandlerSet = wire.NewSet(
 	periodHandlers.NewPeriodHandlers,
 	attendanceHandlers.NewAttendanceHandlers,
 	overtimeHandlers.NewOvertimeHandlers,
+	reimbursementHandlers.NewReimbursementHandlers,
 )
