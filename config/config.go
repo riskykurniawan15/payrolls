@@ -95,7 +95,7 @@ func loadDBServer() PostgressDB {
 		DBMaxIdleCon:  env.GetEnv("DB_MAX_IDLE_CON", 10),
 		DBMaxOpenCon:  env.GetEnv("DB_MAX_OPEN_CON", 100),
 		DBMaxLifeTime: env.GetEnv("DB_MAX_LIFE_TIME", 10),
-		DBTimeZone:    env.GetEnv("DB_TIMEZONE", "Asia/Jakarta"),
+		DBTimeZone:    env.GetEnv("DB_TIME_ZONE", "Asia/Jakarta"),
 		SSLMode:       env.GetEnv("DB_SSL_MODE", "disable"),
 		DBDebug:       env.GetEnv("DB_DEBUG", false),
 	}

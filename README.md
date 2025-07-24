@@ -52,7 +52,7 @@ DB_SERVER=localhost
 DB_PORT=5432
 DB_NAME=payroll_db
 DB_SSL_MODE=disable
-DB_TIMEZONE=Asia/Jakarta
+DB_TIME_ZONE=Asia/Jakarta
 DB_MAX_IDLE_CON=10
 DB_MAX_OPEN_CON=100
 DB_MAX_LIFE_TIME=10
@@ -296,7 +296,7 @@ payrolls/
 | `DB_PORT` | Port database | `5432` |
 | `DB_NAME` | Nama database | `public` |
 | `DB_SSL_MODE` | Mode SSL database | `disable` |
-| `DB_TIMEZONE` | Timezone database | `Asia/Jakarta` |
+| `DB_TIME_ZONE` | Timezone database | `Asia/Jakarta` |
 | `JWT_SECRET_KEY` | Secret key JWT | `` |
 | `JWT_EXPIRED` | Expired JWT (jam) | `24` |
 | `LOG_OUTPUT_MODE` | Mode output log | `both` |
