@@ -12,6 +12,7 @@ import (
 	attendance3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/attendance"
 	health3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/health"
 	overtime3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/overtime"
+	payslip2 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/payslip"
 	period3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/period"
 	period_detail3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/period_detail"
 	reimbursement3 "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/reimbursement"
@@ -26,6 +27,7 @@ import (
 	attendance2 "github.com/riskykurniawan15/payrolls/services/attendance"
 	health2 "github.com/riskykurniawan15/payrolls/services/health"
 	overtime2 "github.com/riskykurniawan15/payrolls/services/overtime"
+	"github.com/riskykurniawan15/payrolls/services/payslip"
 	period2 "github.com/riskykurniawan15/payrolls/services/period"
 	period_detail2 "github.com/riskykurniawan15/payrolls/services/period_detail"
 	reimbursement2 "github.com/riskykurniawan15/payrolls/services/reimbursement"
@@ -46,7 +48,7 @@ func InitializeHandler(db *gorm.DB, cfg config.Config, logger2 logger.Logger) *D
 	iPeriodRepository := period.NewPeriodRepository(db)
 	iPeriodService := period2.NewPeriodService(logger2, iPeriodRepository)
 	iPeriodHandler := period3.NewPeriodHandlers(logger2, iPeriodService)
-	iPeriodDetailRepository := period_detail.NewPeriodDetailRepository(db)
+	iPeriodDetailRepository := period_detail.NewPeriodDetailRepository(db, iPeriodRepository, iUserRepository)
 	iAttendanceRepository := attendance.NewAttendanceRepository(db)
 	iOvertimeRepository := overtime.NewOvertimeRepository(db)
 	iReimbursementRepository := reimbursement.NewReimbursementRepository(db)
@@ -58,6 +60,8 @@ func InitializeHandler(db *gorm.DB, cfg config.Config, logger2 logger.Logger) *D
 	iOvertimeHandler := overtime3.NewOvertimeHandlers(logger2, iOvertimeService)
 	iReimbursementService := reimbursement2.NewReimbursementService(logger2, iReimbursementRepository)
 	iReimbursementHandler := reimbursement3.NewReimbursementHandlers(logger2, iReimbursementService)
+	iPayslipService := payslip.NewPayslipService(logger2, iPeriodDetailRepository, cfg)
+	iPayslipHandler := payslip2.NewPayslipHandlers(logger2, iPayslipService)
 	dependencies := &Dependencies{
 		HealthHandlers:        iHealthHandler,
 		UserHandlers:          iUserHandler,
@@ -66,6 +70,7 @@ func InitializeHandler(db *gorm.DB, cfg config.Config, logger2 logger.Logger) *D
 		AttendanceHandlers:    iAttendanceHandler,
 		OvertimeHandlers:      iOvertimeHandler,
 		ReimbursementHandlers: iReimbursementHandler,
+		PayslipHandlers:       iPayslipHandler,
 	}
 	return dependencies
 }
@@ -80,10 +85,11 @@ type Dependencies struct {
 	AttendanceHandlers    attendance3.IAttendanceHandler
 	OvertimeHandlers      overtime3.IOvertimeHandler
 	ReimbursementHandlers reimbursement3.IReimbursementHandler
+	PayslipHandlers       payslip2.IPayslipHandler
 }
 
 var RepositorySet = wire.NewSet(health.NewHealthRepositories, user.NewUserRepository, period.NewPeriodRepository, period_detail.NewPeriodDetailRepository, attendance.NewAttendanceRepository, overtime.NewOvertimeRepository, reimbursement.NewReimbursementRepository)
 
-var ServicesSet = wire.NewSet(health2.NewHealthService, user2.NewUserService, period2.NewPeriodService, period_detail2.NewPeriodDetailService, attendance2.NewAttendanceService, overtime2.NewOvertimeService, reimbursement2.NewReimbursementService)
+var ServicesSet = wire.NewSet(health2.NewHealthService, user2.NewUserService, period2.NewPeriodService, period_detail2.NewPeriodDetailService, attendance2.NewAttendanceService, overtime2.NewOvertimeService, reimbursement2.NewReimbursementService, payslip.NewPayslipService)
 
-var HandlerSet = wire.NewSet(health3.NewHealthHandlers, user3.NewUserHandlers, period3.NewPeriodHandlers, period_detail3.NewPeriodDetailHandlers, attendance3.NewAttendanceHandlers, overtime3.NewOvertimeHandlers, reimbursement3.NewReimbursementHandlers)
+var HandlerSet = wire.NewSet(health3.NewHealthHandlers, user3.NewUserHandlers, period3.NewPeriodHandlers, period_detail3.NewPeriodDetailHandlers, attendance3.NewAttendanceHandlers, overtime3.NewOvertimeHandlers, reimbursement3.NewReimbursementHandlers, payslip2.NewPayslipHandlers)

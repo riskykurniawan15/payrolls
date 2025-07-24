@@ -19,6 +19,7 @@ import (
 	attendanceServices "github.com/riskykurniawan15/payrolls/services/attendance"
 	healthServices "github.com/riskykurniawan15/payrolls/services/health"
 	overtimeServices "github.com/riskykurniawan15/payrolls/services/overtime"
+	payslipServices "github.com/riskykurniawan15/payrolls/services/payslip"
 	periodServices "github.com/riskykurniawan15/payrolls/services/period"
 	periodDetailServices "github.com/riskykurniawan15/payrolls/services/period_detail"
 	reimbursementServices "github.com/riskykurniawan15/payrolls/services/reimbursement"
@@ -27,6 +28,7 @@ import (
 	attendanceHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/attendance"
 	healthHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/health"
 	overtimeHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/overtime"
+	payslipHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/payslip"
 	periodHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/period"
 	periodDetailHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/period_detail"
 	reimbursementHandlers "github.com/riskykurniawan15/payrolls/infrastructure/http/handler/reimbursement"
@@ -41,6 +43,7 @@ type Dependencies struct {
 	AttendanceHandlers    attendanceHandlers.IAttendanceHandler
 	OvertimeHandlers      overtimeHandlers.IOvertimeHandler
 	ReimbursementHandlers reimbursementHandlers.IReimbursementHandler
+	PayslipHandlers       payslipHandlers.IPayslipHandler
 }
 
 func InitializeHandler(db *gorm.DB, cfg config.Config, logger logger.Logger) *Dependencies {
@@ -71,6 +74,7 @@ var ServicesSet = wire.NewSet(
 	attendanceServices.NewAttendanceService,
 	overtimeServices.NewOvertimeService,
 	reimbursementServices.NewReimbursementService,
+	payslipServices.NewPayslipService,
 )
 
 var HandlerSet = wire.NewSet(
@@ -81,4 +85,5 @@ var HandlerSet = wire.NewSet(
 	attendanceHandlers.NewAttendanceHandlers,
 	overtimeHandlers.NewOvertimeHandlers,
 	reimbursementHandlers.NewReimbursementHandlers,
+	payslipHandlers.NewPayslipHandlers,
 )

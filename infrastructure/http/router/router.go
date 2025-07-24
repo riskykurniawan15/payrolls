@@ -72,5 +72,13 @@ func Routers(dep *dep.Dependencies, jwtSecret string) *echo.Echo {
 		reimbursements.DELETE("/:id", dep.ReimbursementHandlers.Delete)
 	}
 
+	// Payslip routes (employee only)
+	payslips := engine.Group("/payslip", middleware.JWTMiddleware(jwtConfig), middleware.EmployeeOnlyMiddleware())
+	{
+		payslips.GET("", dep.PayslipHandlers.List)
+		payslips.GET("/generate/:id", dep.PayslipHandlers.Generate)
+	}
+	engine.GET("/payslip/print", dep.PayslipHandlers.Print)
+
 	return engine
 }
