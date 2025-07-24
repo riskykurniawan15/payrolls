@@ -128,7 +128,7 @@ func (s *PeriodDetailService) RunPayroll(ctx context.Context, periodID, userID u
 	}
 
 	// Generate job ID
-	jobID := fmt.Sprintf("payroll_%d_%d", periodID, time.Now().Unix())
+	jobID := fmt.Sprintf("payroll_%d_%s", periodID, requestID)
 
 	// Start background processing
 	go s.processPayrollBackground(context.Background(), periodID, periodData, userID, jobID)
