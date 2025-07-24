@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/riskykurniawan15/payrolls/constant"
 	"github.com/riskykurniawan15/payrolls/models/overtime"
 	"gorm.io/gorm"
 )
@@ -29,35 +30,50 @@ func NewOvertimeRepository(db *gorm.DB) IOvertimeRepository {
 	return &OvertimeRepository{db: db}
 }
 
-func (r *OvertimeRepository) Create(ctx context.Context, overtime *overtime.Overtime) error {
-	return r.db.WithContext(ctx).Create(overtime).Error
+func (repo OvertimeRepository) getInstanceDB(ctx context.Context) *gorm.DB {
+	tx, ok := ctx.Value(constant.TransactionKey).(*gorm.DB)
+	if !ok {
+		return repo.db
+	}
+	return tx
 }
 
-func (r *OvertimeRepository) GetByID(ctx context.Context, id uint) (*overtime.Overtime, error) {
+func (repo OvertimeRepository) Create(ctx context.Context, overtime *overtime.Overtime) error {
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	return repo.getInstanceDB(ctx).WithContext(ctxWT).Create(overtime).Error
+}
+
+func (repo OvertimeRepository) GetByID(ctx context.Context, id uint) (*overtime.Overtime, error) {
 	var o overtime.Overtime
-	err := r.db.WithContext(ctx).Where("id = ?", id).First(&o).Error
-	if err != nil {
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	if err := repo.getInstanceDB(ctx).WithContext(ctxWT).Where("id = ?", id).First(&o).Error; err != nil {
 		return nil, err
 	}
 	return &o, nil
 }
 
-func (r *OvertimeRepository) Update(ctx context.Context, id uint, updates map[string]interface{}) error {
-	return r.db.WithContext(ctx).Model(&overtime.Overtime{}).Where("id = ?", id).Updates(updates).Error
+func (repo OvertimeRepository) Update(ctx context.Context, id uint, updates map[string]interface{}) error {
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	return repo.getInstanceDB(ctx).WithContext(ctxWT).Model(&overtime.Overtime{}).Where("id = ?", id).Updates(updates).Error
 }
 
-func (r *OvertimeRepository) Delete(ctx context.Context, id uint) error {
-	// Soft delete by setting status to 9 (if we add status field later)
-	// For now, just delete the record
-	return r.db.WithContext(ctx).Delete(&overtime.Overtime{}, id).Error
+func (repo OvertimeRepository) Delete(ctx context.Context, id uint) error {
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	return repo.getInstanceDB(ctx).WithContext(ctxWT).Delete(&overtime.Overtime{}, id).Error
 }
 
-func (r *OvertimeRepository) List(ctx context.Context, req overtime.ListOvertimesRequest, userID uint) (*overtime.ListOvertimesResponse, error) {
+func (repo OvertimeRepository) List(ctx context.Context, req overtime.ListOvertimesRequest, userID uint) (*overtime.ListOvertimesResponse, error) {
 	var overtimes []overtime.Overtime
 	var total int64
 
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
 	// Build query
-	query := r.db.WithContext(ctx).Model(&overtime.Overtime{}).Where("user_id = ?", userID)
+	query := repo.getInstanceDB(ctx).WithContext(ctxWT).Model(&overtime.Overtime{}).Where("user_id = ?", userID)
 
 	// Apply date range filter
 	if req.StartDate != nil && req.EndDate != nil {
@@ -100,7 +116,7 @@ func (r *OvertimeRepository) List(ctx context.Context, req overtime.ListOvertime
 	// Convert to response
 	var responses []overtime.OvertimeResponse
 	for _, o := range overtimes {
-		responses = append(responses, r.toResponse(o))
+		responses = append(responses, repo.toResponse(o))
 	}
 
 	// Calculate pagination info
@@ -117,13 +133,16 @@ func (r *OvertimeRepository) List(ctx context.Context, req overtime.ListOvertime
 	}, nil
 }
 
-func (r *OvertimeRepository) GetTotalHoursByUserAndDate(ctx context.Context, userID uint, date time.Time) (float64, error) {
+func (repo OvertimeRepository) GetTotalHoursByUserAndDate(ctx context.Context, userID uint, date time.Time) (float64, error) {
 	var totalHours float64
 	// Get total hours for the specific date (from start of day to end of day)
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	endOfDay := startOfDay.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
 
-	err := r.db.WithContext(ctx).
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+
+	err := repo.getInstanceDB(ctx).WithContext(ctxWT).
 		Model(&overtime.Overtime{}).
 		Where("user_id = ? AND overtimes_date BETWEEN ? AND ?", userID, startOfDay, endOfDay).
 		Select("COALESCE(SUM(total_hours_time), 0)").
@@ -132,9 +151,11 @@ func (r *OvertimeRepository) GetTotalHoursByUserAndDate(ctx context.Context, use
 	return totalHours, err
 }
 
-func (r *OvertimeRepository) GetByUserAndDateRange(ctx context.Context, userID uint, startDate, endDate time.Time) ([]overtime.Overtime, error) {
+func (repo OvertimeRepository) GetByUserAndDateRange(ctx context.Context, userID uint, startDate, endDate time.Time) ([]overtime.Overtime, error) {
 	var overtimes []overtime.Overtime
-	err := r.db.WithContext(ctx).
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	err := repo.getInstanceDB(ctx).WithContext(ctxWT).
 		Where("user_id = ? AND overtimes_date BETWEEN ? AND ?", userID, startDate, endDate).
 		Order("overtimes_date ASC").
 		Find(&overtimes).Error
@@ -142,7 +163,7 @@ func (r *OvertimeRepository) GetByUserAndDateRange(ctx context.Context, userID u
 }
 
 // Helper function to convert Overtime to OvertimeResponse
-func (r *OvertimeRepository) toResponse(o overtime.Overtime) overtime.OvertimeResponse {
+func (repo OvertimeRepository) toResponse(o overtime.Overtime) overtime.OvertimeResponse {
 	return overtime.OvertimeResponse{
 		ID:             o.ID,
 		UserID:         o.UserID,

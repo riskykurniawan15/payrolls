@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/riskykurniawan15/payrolls/constant"
 	"github.com/riskykurniawan15/payrolls/models/reimbursement"
 	"gorm.io/gorm"
 )
@@ -28,33 +29,51 @@ func NewReimbursementRepository(db *gorm.DB) IReimbursementRepository {
 	return &ReimbursementRepository{db: db}
 }
 
-func (r *ReimbursementRepository) Create(ctx context.Context, reimbursement *reimbursement.Reimbursement) error {
-	return r.db.WithContext(ctx).Create(reimbursement).Error
+func (repo ReimbursementRepository) getInstanceDB(ctx context.Context) *gorm.DB {
+	tx, ok := ctx.Value(constant.TransactionKey).(*gorm.DB)
+	if !ok {
+		return repo.db
+	}
+	return tx
 }
 
-func (r *ReimbursementRepository) GetByID(ctx context.Context, id uint) (*reimbursement.Reimbursement, error) {
+func (repo ReimbursementRepository) Create(ctx context.Context, reimbursement *reimbursement.Reimbursement) error {
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	return repo.getInstanceDB(ctx).WithContext(ctxWT).Create(reimbursement).Error
+}
+
+func (repo ReimbursementRepository) GetByID(ctx context.Context, id uint) (*reimbursement.Reimbursement, error) {
 	var reimb reimbursement.Reimbursement
-	err := r.db.WithContext(ctx).Where("id = ?", id).First(&reimb).Error
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	err := repo.getInstanceDB(ctx).WithContext(ctxWT).Where("id = ?", id).First(&reimb).Error
 	if err != nil {
 		return nil, err
 	}
 	return &reimb, nil
 }
 
-func (r *ReimbursementRepository) Update(ctx context.Context, id uint, updates map[string]interface{}) error {
-	return r.db.WithContext(ctx).Model(&reimbursement.Reimbursement{}).Where("id = ?", id).Updates(updates).Error
+func (repo ReimbursementRepository) Update(ctx context.Context, id uint, updates map[string]interface{}) error {
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	return repo.getInstanceDB(ctx).WithContext(ctxWT).Model(&reimbursement.Reimbursement{}).Where("id = ?", id).Updates(updates).Error
 }
 
-func (r *ReimbursementRepository) Delete(ctx context.Context, id uint) error {
-	return r.db.WithContext(ctx).Delete(&reimbursement.Reimbursement{}, id).Error
+func (repo ReimbursementRepository) Delete(ctx context.Context, id uint) error {
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	return repo.getInstanceDB(ctx).WithContext(ctxWT).Delete(&reimbursement.Reimbursement{}, id).Error
 }
 
-func (r *ReimbursementRepository) List(ctx context.Context, req reimbursement.ListReimbursementsRequest, userID uint) (*reimbursement.ListReimbursementsResponse, error) {
+func (repo ReimbursementRepository) List(ctx context.Context, req reimbursement.ListReimbursementsRequest, userID uint) (*reimbursement.ListReimbursementsResponse, error) {
 	var reimbursements []reimbursement.Reimbursement
 	var total int64
 
 	// Build query - user can only see their own reimbursements
-	query := r.db.WithContext(ctx).Model(&reimbursement.Reimbursement{}).Where("user_id = ?", userID)
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	query := repo.getInstanceDB(ctx).WithContext(ctxWT).Model(&reimbursement.Reimbursement{}).Where("user_id = ?", userID)
 
 	// Apply date range filter
 	if req.StartDate != nil && req.EndDate != nil {
@@ -97,7 +116,7 @@ func (r *ReimbursementRepository) List(ctx context.Context, req reimbursement.Li
 	// Convert to response
 	var responses []reimbursement.ReimbursementResponse
 	for _, reimb := range reimbursements {
-		responses = append(responses, r.toResponse(reimb))
+		responses = append(responses, repo.toResponse(reimb))
 	}
 
 	// Calculate pagination info
@@ -115,16 +134,18 @@ func (r *ReimbursementRepository) List(ctx context.Context, req reimbursement.Li
 }
 
 // Helper function to convert Reimbursement to ReimbursementResponse
-func (r *ReimbursementRepository) GetByUserAndDateRange(ctx context.Context, userID uint, startDate, endDate time.Time) ([]reimbursement.Reimbursement, error) {
+func (repo ReimbursementRepository) GetByUserAndDateRange(ctx context.Context, userID uint, startDate, endDate time.Time) ([]reimbursement.Reimbursement, error) {
 	var reimbursements []reimbursement.Reimbursement
-	err := r.db.WithContext(ctx).
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	err := repo.getInstanceDB(ctx).WithContext(ctxWT).
 		Where("user_id = ? AND date BETWEEN ? AND ?", userID, startDate, endDate).
 		Order("date ASC").
 		Find(&reimbursements).Error
 	return reimbursements, err
 }
 
-func (r *ReimbursementRepository) toResponse(reimb reimbursement.Reimbursement) reimbursement.ReimbursementResponse {
+func (repo ReimbursementRepository) toResponse(reimb reimbursement.Reimbursement) reimbursement.ReimbursementResponse {
 	return reimbursement.ReimbursementResponse{
 		ID:          reimb.ID,
 		UserID:      reimb.UserID,

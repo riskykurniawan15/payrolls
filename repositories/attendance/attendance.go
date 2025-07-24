@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/riskykurniawan15/payrolls/constant"
 	"github.com/riskykurniawan15/payrolls/models/attendance"
 	"gorm.io/gorm"
 )
@@ -31,14 +32,25 @@ func NewAttendanceRepository(db *gorm.DB) IAttendanceRepository {
 	}
 }
 
-func (repo *AttendanceRepository) GetAttendances(ctx context.Context, userID uint, page, limit int, startDate, endDate *time.Time) ([]attendance.Attendance, int64, error) {
+func (repo AttendanceRepository) getInstanceDB(ctx context.Context) *gorm.DB {
+	tx, ok := ctx.Value(constant.TransactionKey).(*gorm.DB)
+	if !ok {
+		return repo.db
+	}
+	return tx
+}
+
+func (repo AttendanceRepository) GetAttendances(ctx context.Context, userID uint, page, limit int, startDate, endDate *time.Time) ([]attendance.Attendance, int64, error) {
 	var attendances []attendance.Attendance
 	var total int64
 
 	offset := (page - 1) * limit
 
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+
 	// Build query
-	query := repo.db.WithContext(ctx).Model(&attendance.Attendance{}).Where("user_id = ?", userID)
+	query := repo.getInstanceDB(ctx).WithContext(ctxWT).Model(&attendance.Attendance{}).Where("user_id = ?", userID)
 
 	// Add date filter if provided
 	if startDate != nil && endDate != nil {
@@ -70,10 +82,13 @@ func (repo *AttendanceRepository) GetAttendances(ctx context.Context, userID uin
 	return attendances, total, nil
 }
 
-func (repo *AttendanceRepository) GetAttendanceByID(ctx context.Context, id, userID uint) (attendance.Attendance, error) {
+func (repo AttendanceRepository) GetAttendanceByID(ctx context.Context, id, userID uint) (attendance.Attendance, error) {
 	var attendance attendance.Attendance
 
-	if err := repo.db.WithContext(ctx).
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+
+	if err := repo.getInstanceDB(ctx).WithContext(ctxWT).
 		Where("id = ? AND user_id = ?", id, userID).
 		First(&attendance).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -85,14 +100,17 @@ func (repo *AttendanceRepository) GetAttendanceByID(ctx context.Context, id, use
 	return attendance, nil
 }
 
-func (repo *AttendanceRepository) GetByUserAndDate(ctx context.Context, userID uint, date time.Time) (*attendance.Attendance, error) {
+func (repo AttendanceRepository) GetByUserAndDate(ctx context.Context, userID uint, date time.Time) (*attendance.Attendance, error) {
 	var attendance attendance.Attendance
 
 	// Get attendance for the specific date (from start of day to end of day)
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
-	err := repo.db.WithContext(ctx).
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+
+	err := repo.getInstanceDB(ctx).WithContext(ctxWT).
 		Where("user_id = ? AND check_in_date >= ? AND check_in_date < ?", userID, startOfDay, endOfDay).
 		First(&attendance).Error
 
@@ -106,11 +124,14 @@ func (repo *AttendanceRepository) GetByUserAndDate(ctx context.Context, userID u
 	return &attendance, nil
 }
 
-func (repo *AttendanceRepository) GetLatestCheckInByUserID(ctx context.Context, userID uint, date *time.Time) (attendance.Attendance, error) {
+func (repo AttendanceRepository) GetLatestCheckInByUserID(ctx context.Context, userID uint, date *time.Time) (attendance.Attendance, error) {
 	var attendance attendance.Attendance
 
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+
 	// Build query
-	query := repo.db.WithContext(ctx).Where("user_id = ?", userID)
+	query := repo.getInstanceDB(ctx).WithContext(ctxWT).Where("user_id = ?", userID)
 
 	// Add date filter if provided
 	if date != nil {
@@ -130,26 +151,33 @@ func (repo *AttendanceRepository) GetLatestCheckInByUserID(ctx context.Context, 
 	return attendance, nil
 }
 
-func (repo *AttendanceRepository) CreateAttendance(ctx context.Context, attendance attendance.Attendance) (attendance.Attendance, error) {
-	if err := repo.db.WithContext(ctx).Create(&attendance).Error; err != nil {
+func (repo AttendanceRepository) CreateAttendance(ctx context.Context, attendance attendance.Attendance) (attendance.Attendance, error) {
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	if err := repo.getInstanceDB(ctx).WithContext(ctxWT).Create(&attendance).Error; err != nil {
 		return attendance, err
 	}
 
 	return attendance, nil
 }
 
-func (repo *AttendanceRepository) UpdateAttendance(ctx context.Context, attendance attendance.Attendance) (attendance.Attendance, error) {
-	if err := repo.db.WithContext(ctx).Save(&attendance).Error; err != nil {
+func (repo AttendanceRepository) UpdateAttendance(ctx context.Context, attendance attendance.Attendance) (attendance.Attendance, error) {
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	if err := repo.getInstanceDB(ctx).WithContext(ctxWT).Save(&attendance).Error; err != nil {
 		return attendance, err
 	}
 
 	return attendance, nil
 }
 
-func (repo *AttendanceRepository) GetAttendanceByIDForUpdate(ctx context.Context, id, userID uint) (attendance.Attendance, error) {
+func (repo AttendanceRepository) GetAttendanceByIDForUpdate(ctx context.Context, id, userID uint) (attendance.Attendance, error) {
 	var attendance attendance.Attendance
 
-	if err := repo.db.WithContext(ctx).
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+
+	if err := repo.getInstanceDB(ctx).WithContext(ctxWT).
 		Where("id = ? AND user_id = ?", id, userID).
 		First(&attendance).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

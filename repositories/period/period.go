@@ -36,43 +36,69 @@ func NewPeriodRepository(db *gorm.DB) IPeriodRepository {
 	return &PeriodRepository{db: db}
 }
 
-func (r *PeriodRepository) Create(ctx context.Context, period *period.Period) error {
-	return r.db.WithContext(ctx).Create(period).Error
+func (repo PeriodRepository) getInstanceDB(ctx context.Context) *gorm.DB {
+	tx, ok := ctx.Value(constant.TransactionKey).(*gorm.DB)
+	if !ok {
+		return repo.db
+	}
+	return tx
 }
 
-func (r *PeriodRepository) GetByID(ctx context.Context, id uint) (*period.Period, error) {
+func (repo PeriodRepository) Create(ctx context.Context, period *period.Period) error {
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+
+	return repo.getInstanceDB(ctx).WithContext(ctxWT).Create(period).Error
+}
+
+func (repo PeriodRepository) GetByID(ctx context.Context, id uint) (*period.Period, error) {
 	var p period.Period
-	err := r.db.WithContext(ctx).Where("id = ?", id).First(&p).Error
+
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+
+	err := repo.getInstanceDB(ctx).WithContext(ctxWT).Where("id = ?", id).First(&p).Error
 	if err != nil {
 		return nil, err
 	}
 	return &p, nil
 }
 
-func (r *PeriodRepository) GetByCode(ctx context.Context, code string) (*period.Period, error) {
+func (repo PeriodRepository) GetByCode(ctx context.Context, code string) (*period.Period, error) {
 	var p period.Period
-	err := r.db.WithContext(ctx).Where("LOWER(code) = LOWER(?)", code).First(&p).Error
+
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+
+	err := repo.getInstanceDB(ctx).WithContext(ctxWT).Where("LOWER(code) = LOWER(?)", code).First(&p).Error
 	if err != nil {
 		return nil, err
 	}
 	return &p, nil
 }
 
-func (r *PeriodRepository) Update(ctx context.Context, id uint, updates map[string]interface{}) error {
-	return r.db.WithContext(ctx).Model(&period.Period{}).Where("id = ?", id).Updates(updates).Error
+func (repo PeriodRepository) Update(ctx context.Context, id uint, updates map[string]interface{}) error {
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	return repo.getInstanceDB(ctx).WithContext(ctxWT).Model(&period.Period{}).Where("id = ?", id).Updates(updates).Error
 }
 
-func (r *PeriodRepository) Delete(ctx context.Context, id uint) error {
+func (repo PeriodRepository) Delete(ctx context.Context, id uint) error {
 	// Soft delete by setting status to 9
-	return r.db.WithContext(ctx).Model(&period.Period{}).Where("id = ?", id).Update("status", 9).Error
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+	return repo.getInstanceDB(ctx).WithContext(ctxWT).Model(&period.Period{}).Where("id = ?", id).Update("status", 9).Error
 }
 
-func (r *PeriodRepository) List(ctx context.Context, req period.ListPeriodsRequest) (*period.ListPeriodsResponse, error) {
+func (repo PeriodRepository) List(ctx context.Context, req period.ListPeriodsRequest) (*period.ListPeriodsResponse, error) {
 	var periods []period.Period
 	var total int64
 
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+
 	// Build query
-	query := r.db.WithContext(ctx).Model(&period.Period{}).Where("status != ?", constant.StatusDeleted)
+	query := repo.getInstanceDB(ctx).WithContext(ctxWT).Model(&period.Period{}).Where("status != ?", constant.StatusDeleted)
 
 	// Apply search filter
 	if req.Search != "" {
@@ -113,7 +139,7 @@ func (r *PeriodRepository) List(ctx context.Context, req period.ListPeriodsReque
 	// Convert to response
 	var responses []period.PeriodResponse
 	for _, p := range periods {
-		responses = append(responses, r.toResponse(p))
+		responses = append(responses, repo.toResponse(p))
 	}
 
 	// Calculate pagination info
@@ -130,9 +156,12 @@ func (r *PeriodRepository) List(ctx context.Context, req period.ListPeriodsReque
 	}, nil
 }
 
-func (r *PeriodRepository) IsCodeExists(ctx context.Context, code string, excludeID ...uint) (bool, error) {
+func (repo PeriodRepository) IsCodeExists(ctx context.Context, code string, excludeID ...uint) (bool, error) {
 	var count int64
-	query := r.db.WithContext(ctx).Model(&period.Period{}).
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+
+	query := repo.getInstanceDB(ctx).WithContext(ctxWT).Model(&period.Period{}).
 		Where("LOWER(code) = LOWER(?) AND status != ?", code, constant.StatusDeleted)
 
 	if len(excludeID) > 0 {
@@ -144,9 +173,13 @@ func (r *PeriodRepository) IsCodeExists(ctx context.Context, code string, exclud
 }
 
 // CheckDateConflict checks if the given date range conflicts with existing periods
-func (r *PeriodRepository) CheckDateConflict(ctx context.Context, startDate, endDate time.Time, excludeID ...uint) (bool, error) {
+func (repo PeriodRepository) CheckDateConflict(ctx context.Context, startDate, endDate time.Time, excludeID ...uint) (bool, error) {
 	var count int64
-	query := r.db.WithContext(ctx).Model(&period.Period{}).
+
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+
+	query := repo.getInstanceDB(ctx).WithContext(ctxWT).Model(&period.Period{}).
 		Where("status != ?", constant.StatusDeleted).
 		Where("(start_date <= ? AND end_date >= ?) OR (start_date <= ? AND end_date >= ?) OR (start_date >= ? AND end_date <= ?)",
 			startDate, startDate,
@@ -163,9 +196,13 @@ func (r *PeriodRepository) CheckDateConflict(ctx context.Context, startDate, end
 }
 
 // GetConflictingPeriods returns periods that conflict with the given date range
-func (r *PeriodRepository) GetConflictingPeriods(ctx context.Context, startDate, endDate time.Time, excludeID ...uint) ([]period.Period, error) {
+func (repo PeriodRepository) GetConflictingPeriods(ctx context.Context, startDate, endDate time.Time, excludeID ...uint) ([]period.Period, error) {
 	var periods []period.Period
-	query := r.db.WithContext(ctx).Model(&period.Period{}).
+
+	ctxWT, cancel := context.WithTimeout(ctx, constant.DBTimeout)
+	defer cancel()
+
+	query := repo.getInstanceDB(ctx).WithContext(ctxWT).Model(&period.Period{}).
 		Where("status != ?", constant.StatusDeleted).
 		Where("(start_date <= ? AND end_date >= ?) OR (start_date <= ? AND end_date >= ?) OR (start_date >= ? AND end_date <= ?)",
 			startDate, startDate,
@@ -181,7 +218,7 @@ func (r *PeriodRepository) GetConflictingPeriods(ctx context.Context, startDate,
 	return periods, err
 }
 
-func (r *PeriodRepository) GenerateUniqueCode(ctx context.Context) (string, error) {
+func (repo PeriodRepository) GenerateUniqueCode(ctx context.Context) (string, error) {
 	// Import the code generator
 	codeGen := "PRD/" + time.Now().Format("20060102") + "/"
 
@@ -190,7 +227,7 @@ func (r *PeriodRepository) GenerateUniqueCode(ctx context.Context) (string, erro
 		randomCode := generateRandomCode()
 		fullCode := codeGen + randomCode
 
-		exists, err := r.IsCodeExists(ctx, fullCode)
+		exists, err := repo.IsCodeExists(ctx, fullCode)
 		if err != nil {
 			return "", err
 		}
@@ -217,7 +254,7 @@ func generateRandomCode() string {
 }
 
 // Helper function to convert Period to PeriodResponse
-func (r *PeriodRepository) toResponse(p period.Period) period.PeriodResponse {
+func (repo PeriodRepository) toResponse(p period.Period) period.PeriodResponse {
 	return period.PeriodResponse{
 		ID:                    p.ID,
 		Code:                  p.Code,
